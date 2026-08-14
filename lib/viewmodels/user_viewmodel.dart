@@ -59,6 +59,25 @@ class UserViewModel extends ChangeNotifier {
     }
   }
 
+  void updateGender(String gender) {
+    if (_currentUser != null) {
+      _currentUser = _currentUser!.copyWith(gender: gender);
+      _authService.updateCurrentUser(_currentUser!);
+      notifyListeners();
+    }
+  }
+
+  void setTarget(double targetWeight, DateTime targetDate) {
+    if (_currentUser != null) {
+      _currentUser = _currentUser!.copyWith(
+        targetWeight: targetWeight,
+        targetDate: targetDate,
+      );
+      _authService.updateCurrentUser(_currentUser!);
+      notifyListeners();
+    }
+  }
+
   double get bmiValue {
     if (_currentUser == null) return 0.0;
     

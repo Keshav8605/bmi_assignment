@@ -29,7 +29,7 @@ class _LoginViewState extends State<LoginView> {
     
     if (success && mounted) {
       Provider.of<UserViewModel>(context, listen: false).loadUser();
-      Navigator.pushReplacementNamed(context, AppRoutes.userDetails);
+      Navigator.pushReplacementNamed(context, AppRoutes.genderSelection);
     }
   }
 

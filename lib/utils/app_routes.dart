@@ -7,6 +7,8 @@ import '../views/dashboard_view.dart';
 import '../views/settings_view.dart';
 import '../views/splash_view.dart';
 import '../views/main_view.dart';
+import '../views/gender_selection_view.dart';
+import '../views/goal_setting_view.dart';
 
 class AppRoutes {
   static const String splash = '/splash';
@@ -16,6 +18,8 @@ class AppRoutes {
   static const String dashboard = '/dashboard';
   static const String main = '/main';
   static const String settings = '/settings';
+  static const String genderSelection = '/gender_selection';
+  static const String goalSetting = '/goal_setting';
 
   static Map<String, WidgetBuilder> get routes {
     return {
@@ -26,6 +30,8 @@ class AppRoutes {
       dashboard: (context) => const DashboardView(),
       main: (context) => const MainView(),
       settings: (context) => const SettingsView(),
+      genderSelection: (context) => const GenderSelectionView(),
+      goalSetting: (context) => const GoalSettingView(),
     };
   }
 }

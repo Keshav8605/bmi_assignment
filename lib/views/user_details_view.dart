@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../utils/app_routes.dart';
 import '../viewmodels/user_viewmodel.dart';
-import 'widgets/premium_loader.dart';
 
 class UserDetailsView extends StatefulWidget {
   const UserDetailsView({super.key});
@@ -12,200 +11,386 @@ class UserDetailsView extends StatefulWidget {
 }
 
 class _UserDetailsViewState extends State<UserDetailsView> {
-  String _selectedGender = 'Male';
-  final _weightController = TextEditingController();
-  final _heightController = TextEditingController();
-  bool _isLoading = false;
+  // We manage the local state for sliders, then save to ViewModel
+  double _weight = 53.0;
+  double _height = 160.0;
+  
+  // Local unit toggles (syncs with userVM eventually)
+  bool _isKg = true;
+  bool _isCm = true;
 
   @override
   void initState() {
     super.initState();
-    // Pre-fill with mock data if available
     final userVM = Provider.of<UserViewModel>(context, listen: false);
+    _isKg = userVM.isKg;
+    _isCm = userVM.isCm;
+    
     if (userVM.currentUser != null) {
-      _weightController.text = userVM.currentUser!.weight.toString();
-      _heightController.text = userVM.currentUser!.height.toString();
-      _selectedGender = userVM.currentUser!.gender;
+      _weight = userVM.currentUser!.weight;
+      _height = userVM.currentUser!.height;
+      
+      // If we need to display in lbs/ft, convert for the slider max/mins
+      if (!_isKg) _weight = _weight * 2.20462;
+      if (!_isCm) _height = _height / 30.48; // using rough ft (e.g., 5.3)
     }
   }
 
-  @override
-  void dispose() {
-    _weightController.dispose();
-    _heightController.dispose();
-    super.dispose();
-  }
-
-  void _saveDetails() async {
-    setState(() => _isLoading = true);
-    
-    // Simulate premium calculation delay
-    await Future.delayed(const Duration(seconds: 2));
-
-    if (!mounted) return;
-
+  void _onNext() {
     final userVM = Provider.of<UserViewModel>(context, listen: false);
-    double weight = double.tryParse(_weightController.text) ?? 70.0;
-    double height = double.tryParse(_heightController.text) ?? 170.0;
     
-    // convert back to metric if needed
-    if (!userVM.isKg) {
-      weight = weight * 0.453592; // lbs to kg
-    }
-    if (!userVM.isCm) {
-      height = height * 30.48; // ft to cm (approx for simple ft)
-    }
+    // Convert back to metric if stored locally in imperial
+    double saveWeight = _weight;
+    double saveHeight = _height;
+    
+    if (!_isKg) saveWeight = saveWeight / 2.20462;
+    if (!_isCm) saveHeight = saveHeight * 30.48;
 
-    userVM.updateVitals(weight: weight, height: height);
-    Navigator.pushReplacementNamed(context, AppRoutes.dashboard);
+    userVM.toggleWeightUnit(_isKg);
+    userVM.toggleHeightUnit(_isCm);
+    userVM.updateVitals(weight: saveWeight, height: saveHeight);
+    
+    Navigator.pushReplacementNamed(context, AppRoutes.main);
+  }
+
+  Widget _buildUnitToggle({
+    required bool isFirstActive,
+    required String firstLabel,
+    required String secondLabel,
+    required VoidCallback onToggle,
+  }) {
+    return GestureDetector(
+      onTap: onToggle,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.grey.shade300),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                color: isFirstActive ? Colors.grey.shade200 : Colors.transparent,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Text(firstLabel, style: TextStyle(fontSize: 10, fontWeight: isFirstActive ? FontWeight.bold : FontWeight.normal, color: isFirstActive ? Colors.black : Colors.grey)),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                color: !isFirstActive ? Colors.grey.shade200 : Colors.transparent,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Text(secondLabel, style: TextStyle(fontSize: 10, fontWeight: !isFirstActive ? FontWeight.bold : FontWeight.normal, color: !isFirstActive ? Colors.black : Colors.grey)),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final userVM = Provider.of<UserViewModel>(context);
-    
+    final String gender = userVM.currentUser?.gender ?? 'Female';
+    final String imageAsset = gender == 'Female' ? 'assets/images/female.png' : 'assets/images/male.png';
+    const pinkAccent = Color(0xFFED5D73);
+    const purpleSlider = Color(0xFF9E4784); // Purple from image
+    const bgColor = Color(0xFFF7F8FA);
+
     return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        title: const Text('Body Data', style: TextStyle(color: Colors.black)),
-        centerTitle: true,
-        automaticallyImplyLeading: false, 
-      ),
-      body: PremiumLoader(
-        isLoading: _isLoading,
-        child: SafeArea(
-          child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
+      backgroundColor: bgColor,
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 24.0),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Tell us about yourself',
-                style: theme.textTheme.displaySmall?.copyWith(fontWeight: FontWeight.w900),
-              ),
-              const SizedBox(height: 32),
-              
-              // Gender Selection
-              Text('Gender', style: theme.textTheme.titleLarge),
-              const SizedBox(height: 12),
-              SegmentedButton<String>(
-                segments: const [
-                  ButtonSegment(value: 'Male', label: Text('Male')),
-                  ButtonSegment(value: 'Female', label: Text('Female')),
-                  ButtonSegment(value: 'Other', label: Text('Other')),
+              Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.arrow_back),
+                    onPressed: () => Navigator.pop(context),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                  ),
+                  const SizedBox(width: 16),
+                  const Text(
+                    'Your height & weight',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
                 ],
-                selected: {_selectedGender},
-                onSelectionChanged: (Set<String> newSelection) {
-                  setState(() {
-                    _selectedGender = newSelection.first;
-                  });
-                },
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
               
-              // Date of Birth (Placeholder for date picker)
-              Text('Date of Birth', style: theme.textTheme.titleLarge),
-              const SizedBox(height: 12),
-              InkWell(
-                onTap: () async {
-                  await showDatePicker(
-                    context: context,
-                    initialDate: DateTime(2000),
-                    firstDate: DateTime(1900),
-                    lastDate: DateTime.now(),
-                  );
-                },
-                child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  decoration: const BoxDecoration(
-                    border: Border(bottom: BorderSide(color: Color(0xFFE0E0E0))),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text('Select Date', style: theme.textTheme.bodyLarge),
-                      const Icon(Icons.calendar_today_outlined, color: Colors.grey),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // Height
+              // Unit toggles row
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('Height', style: theme.textTheme.titleLarge),
-                  // Toggle CM / FT
-                  Row(
-                    children: [
-                      Text('FT', style: TextStyle(color: userVM.isCm ? Colors.grey : theme.primaryColor, fontWeight: FontWeight.bold)),
-                      Switch(
-                        value: userVM.isCm,
-                        onChanged: userVM.toggleHeightUnit,
-                        activeTrackColor: theme.primaryColor,
-                        activeThumbColor: Colors.white,
-                      ),
-                      Text('CM', style: TextStyle(color: userVM.isCm ? theme.primaryColor : Colors.grey, fontWeight: FontWeight.bold)),
-                    ],
-                  )
+                  _buildUnitToggle(
+                    isFirstActive: _isKg, 
+                    firstLabel: 'kg', 
+                    secondLabel: 'lbs', 
+                    onToggle: () {
+                      setState(() {
+                        if (_isKg) {
+                           _weight = _weight * 2.20462; // convert to lbs
+                        } else {
+                           _weight = _weight / 2.20462; // convert to kg
+                        }
+                        _isKg = !_isKg;
+                      });
+                    }
+                  ),
+                  _buildUnitToggle(
+                    isFirstActive: _isCm, 
+                    firstLabel: 'cm', 
+                    secondLabel: 'ft', 
+                    onToggle: () {
+                      setState(() {
+                        if (_isCm) {
+                          _height = _height / 30.48; // convert to ft
+                        } else {
+                          _height = _height * 30.48; // convert to cm
+                        }
+                        _isCm = !_isCm;
+                      });
+                    }
+                  ),
                 ],
               ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: _heightController,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                decoration: InputDecoration(
-                  labelText: userVM.isCm ? 'Height (cm)' : 'Height (ft)',
-                  suffixText: userVM.isCm ? 'cm' : 'ft',
+              const SizedBox(height: 16),
+
+              Expanded(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // Weight Slider
+                    Expanded(
+                      flex: 2,
+                      child: CustomVerticalSlider(
+                        value: _weight,
+                        min: _isKg ? 20 : 44, // 20kg or 44lbs
+                        max: _isKg ? 150 : 330, // 150kg or 330lbs
+                        unit: _isKg ? 'kg' : 'lbs',
+                        color: purpleSlider,
+                        isLeftAligned: true,
+                        title: 'Weight',
+                        onChanged: (val) => setState(() => _weight = val),
+                      ),
+                    ),
+                    
+                    // Center Image
+                    Expanded(
+                      flex: 3,
+                      child: Center(
+                        child: Image.asset(
+                          imageAsset,
+                          height: 350,
+                          fit: BoxFit.contain,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Container(
+                              height: 300,
+                              width: 80,
+                              decoration: BoxDecoration(
+                                color: gender == 'Female' ? Colors.pink.shade200 : Colors.blue.shade200,
+                                borderRadius: BorderRadius.circular(40),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+
+                    // Height Slider
+                    Expanded(
+                      flex: 2,
+                      child: CustomVerticalSlider(
+                        value: _height,
+                        min: _isCm ? 100 : 3.0, // 100cm or 3ft
+                        max: _isCm ? 220 : 7.5, // 220cm or 7.5ft
+                        unit: _isCm ? 'cm' : 'ft',
+                        color: purpleSlider,
+                        isLeftAligned: false,
+                        title: 'Height',
+                        onChanged: (val) => setState(() => _height = val),
+                        formatValue: (v) {
+                          if (!_isCm) {
+                            int ft = v.floor();
+                            int inches = ((v - ft) * 12).round();
+                            return "$ft'$inches";
+                          }
+                          return "${v.toInt()}";
+                        },
+                      ),
+                    ),
+                  ],
                 ),
               ),
+              
               const SizedBox(height: 24),
-
-              // Weight
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('Weight', style: theme.textTheme.titleLarge),
-                  // Toggle KG / LBS
-                  Row(
-                    children: [
-                      Text('LBS', style: TextStyle(color: userVM.isKg ? Colors.grey : theme.primaryColor, fontWeight: FontWeight.bold)),
-                      Switch(
-                        value: userVM.isKg,
-                        onChanged: userVM.toggleWeightUnit,
-                        activeTrackColor: theme.primaryColor,
-                        activeThumbColor: Colors.white,
-                      ),
-                      Text('KG', style: TextStyle(color: userVM.isKg ? theme.primaryColor : Colors.grey, fontWeight: FontWeight.bold)),
-                    ],
-                  )
-                ],
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: _weightController,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                decoration: InputDecoration(
-                  labelText: userVM.isKg ? 'Weight (kg)' : 'Weight (lbs)',
-                  suffixText: userVM.isKg ? 'kg' : 'lbs',
+              // Next Button
+              Center(
+                child: InkWell(
+                  onTap: _onNext,
+                  customBorder: const CircleBorder(),
+                  child: Container(
+                    width: 60,
+                    height: 60,
+                    decoration: BoxDecoration(
+                      color: pinkAccent,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: pinkAccent.withValues(alpha: 0.4),
+                          blurRadius: 15,
+                          offset: const Offset(0, 5),
+                        )
+                      ],
+                    ),
+                    child: const Icon(Icons.arrow_forward, color: Colors.white, size: 28),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 48),
-
-              // Continue Button
-              ElevatedButton(
-                onPressed: _isLoading ? null : _saveDetails,
-                child: const Text('Continue'),
               ),
             ],
           ),
         ),
       ),
-      ),
+    );
+  }
+}
+
+class CustomVerticalSlider extends StatelessWidget {
+  final double value;
+  final double min;
+  final double max;
+  final String unit;
+  final Color color;
+  final bool isLeftAligned;
+  final String title;
+  final ValueChanged<double> onChanged;
+  final String Function(double)? formatValue;
+
+  const CustomVerticalSlider({
+    super.key,
+    required this.value,
+    required this.min,
+    required this.max,
+    required this.unit,
+    required this.color,
+    required this.isLeftAligned,
+    required this.title,
+    required this.onChanged,
+    this.formatValue,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final height = constraints.maxHeight - 40; // reserve space for title
+        final percent = (value - min) / (max - min);
+        final fillHeight = height * percent.clamp(0.0, 1.0);
+        
+        final displayValue = formatValue != null ? formatValue!(value) : "${value.toInt()}";
+
+        return Column(
+          children: [
+            Expanded(
+              child: GestureDetector(
+                onPanUpdate: (details) {
+                  // delta.dy is negative when moving up
+                  final dy = details.localPosition.dy;
+                  final newPercent = 1.0 - (dy / height).clamp(0.0, 1.0);
+                  final newValue = min + (max - min) * newPercent;
+                  onChanged(newValue);
+                },
+                child: Container(
+                  width: double.infinity,
+                  color: Colors.transparent, // Capture touches
+                  child: Stack(
+                    alignment: isLeftAligned ? Alignment.bottomLeft : Alignment.bottomRight,
+                    children: [
+                      // The slider bar background
+                      Positioned(
+                        left: isLeftAligned ? 20 : null,
+                        right: !isLeftAligned ? 20 : null,
+                        top: 0,
+                        bottom: 0,
+                        child: Container(
+                          width: 16,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.grey.shade300),
+                          ),
+                          child: Stack(
+                            alignment: Alignment.bottomCenter,
+                            children: [
+                              // The fill
+                              Container(
+                                height: fillHeight,
+                                width: double.infinity,
+                                decoration: BoxDecoration(
+                                  color: color,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                              // Ticks (mockup)
+                              Column(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: List.generate(10, (index) => Container(
+                                  width: 8,
+                                  height: 1,
+                                  color: Colors.grey.shade400,
+                                  margin: const EdgeInsets.only(top: 10),
+                                )),
+                              )
+                            ],
+                          ),
+                        ),
+                      ),
+                      // The thumb / value indicator
+                      Positioned(
+                        bottom: fillHeight - 10, // center it
+                        left: isLeftAligned ? 40 : null,
+                        right: !isLeftAligned ? 40 : null,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (!isLeftAligned) Text(
+                              "$displayValue $unit",
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                            ),
+                            if (!isLeftAligned) const SizedBox(width: 4),
+                            // Thumb line
+                            Container(
+                              width: 12,
+                              height: 2,
+                              color: Colors.black87,
+                            ),
+                            if (isLeftAligned) const SizedBox(width: 4),
+                            if (isLeftAligned) Text(
+                              "$displayValue $unit",
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(title, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+          ],
+        );
+      }
     );
   }
 }

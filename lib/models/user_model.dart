@@ -7,6 +7,8 @@ class UserModel {
   final double height; // stored in cm
   final double weight; // stored in kg
   final String gender;
+  final double? targetWeight;
+  final DateTime? targetDate;
   final List<BmiRecord> history;
 
   UserModel({
@@ -16,6 +18,8 @@ class UserModel {
     required this.height,
     required this.weight,
     required this.gender,
+    this.targetWeight,
+    this.targetDate,
     this.history = const [],
   });
 
@@ -26,6 +30,8 @@ class UserModel {
     double? height,
     double? weight,
     String? gender,
+    double? targetWeight,
+    DateTime? targetDate,
     List<BmiRecord>? history,
   }) {
     return UserModel(
@@ -35,6 +41,8 @@ class UserModel {
       height: height ?? this.height,
       weight: weight ?? this.weight,
       gender: gender ?? this.gender,
+      targetWeight: targetWeight ?? this.targetWeight,
+      targetDate: targetDate ?? this.targetDate,
       history: history ?? this.history,
     );
   }
@@ -47,6 +55,8 @@ class UserModel {
       height: json['height']?.toDouble() ?? 170.0,
       weight: json['weight']?.toDouble() ?? 70.0,
       gender: json['gender'] ?? 'Male',
+      targetWeight: json['targetWeight']?.toDouble(),
+      targetDate: json['targetDate'] != null ? DateTime.parse(json['targetDate']) : null,
       history: (json['history'] as List<dynamic>?)
               ?.map((e) => BmiRecord.fromJson(e))
               .toList() ??
@@ -62,6 +72,8 @@ class UserModel {
       'height': height,
       'weight': weight,
       'gender': gender,
+      'targetWeight': targetWeight,
+      'targetDate': targetDate?.toIso8601String(),
       'history': history.map((e) => e.toJson()).toList(),
     };
   }
