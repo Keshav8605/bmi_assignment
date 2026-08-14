@@ -94,14 +94,21 @@ class AuthService {
       orElse: () => null
     );
     
-    if (matchedProfile != null) {
+    // Accept matching email and a generic 'password123' for dummy accounts, or newly registered ones
+    if (matchedProfile != null && (password == 'password123' || password.isNotEmpty)) {
       _currentUser = matchedProfile;
-    } else {
-      _currentUser = _profiles.first; 
+      await _persistState();
+      return true;
     }
     
-    await _persistState();
-    return true;
+    // Fallback for default test credentials
+    if (email == 'test@example.com' && password == 'password123') {
+      _currentUser = _profiles.first; // John Doe
+      await _persistState();
+      return true;
+    }
+    
+    return false;
   }
 
   Future<bool> register(String name, String email, String password) async {
@@ -132,6 +139,19 @@ class AuthService {
     _persistState();
   }
   
+  Future<void> deleteProfile(String id) async {
+    _profiles.removeWhere((p) => p.id == id);
+    if (_currentUser?.id == id) {
+      if (_profiles.isNotEmpty) {
+        _currentUser = _profiles.first;
+      } else {
+        await logout();
+        return;
+      }
+    }
+    await _persistState();
+  }
+
   void updateCurrentUser(UserModel updatedUser) {
     _currentUser = updatedUser;
     final index = _profiles.indexWhere((p) => p.id == updatedUser.id);

@@ -20,7 +20,10 @@ class _GenderSelectionViewState extends State<GenderSelectionView> {
   }
 
   Widget _buildCharacter({required String gender, required String imageAsset}) {
+    final userVM = Provider.of<UserViewModel>(context);
+    final isDark = userVM.isDarkMode;
     final isSelected = _selectedGender == gender;
+    
     return GestureDetector(
       onTap: () {
         setState(() {
@@ -41,7 +44,7 @@ class _GenderSelectionViewState extends State<GenderSelectionView> {
               height: 140,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: isSelected ? Colors.grey.withValues(alpha: 0.1) : Colors.transparent,
+                color: isSelected ? (isDark ? Colors.white.withValues(alpha: 0.1) : Colors.grey.withValues(alpha: 0.1)) : Colors.transparent,
               ),
             ),
             // Character Image
@@ -73,8 +76,12 @@ class _GenderSelectionViewState extends State<GenderSelectionView> {
 
   @override
   Widget build(BuildContext context) {
-    const bgColor = Color(0xFFF7F8FA);
-    const pinkAccent = Color(0xFFED5D73);
+    final userVM = Provider.of<UserViewModel>(context);
+    final isDark = userVM.isDarkMode;
+    
+    final bgColor = isDark ? const Color(0xFF121212) : const Color(0xFFF7F8FA);
+    final textColor = isDark ? Colors.white : Colors.black87;
+    final pinkAccent = isDark ? const Color(0xFFFF7B93) : const Color(0xFFED5D73);
 
     return Scaffold(
       backgroundColor: bgColor,
@@ -84,12 +91,12 @@ class _GenderSelectionViewState extends State<GenderSelectionView> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 'Choose One',
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black87,
+                  color: textColor,
                 ),
               ),
               Expanded(
@@ -110,11 +117,11 @@ class _GenderSelectionViewState extends State<GenderSelectionView> {
                       width: 250,
                       height: 50,
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
                         borderRadius: BorderRadius.circular(25),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.02),
+                            color: isDark ? Colors.black26 : Colors.black.withValues(alpha: 0.02),
                             blurRadius: 10,
                             offset: const Offset(0, 4),
                           )
@@ -127,15 +134,15 @@ class _GenderSelectionViewState extends State<GenderSelectionView> {
                               onTap: () => setState(() => _selectedGender = 'Female'),
                               child: Container(
                                 decoration: BoxDecoration(
-                                  color: _selectedGender == 'Female' ? Colors.white : Colors.transparent,
+                                  color: _selectedGender == 'Female' ? (isDark ? const Color(0xFF2C2C2C) : Colors.white) : Colors.transparent,
                                   borderRadius: BorderRadius.circular(25),
-                                  border: _selectedGender == 'Female' ? Border.all(color: Colors.grey.shade200) : null,
+                                  border: _selectedGender == 'Female' ? Border.all(color: isDark ? Colors.grey.shade700 : Colors.grey.shade200) : null,
                                 ),
                                 child: Center(
                                   child: Text(
                                     'Female',
                                     style: TextStyle(
-                                      color: _selectedGender == 'Female' ? Colors.black87 : Colors.grey.shade400,
+                                      color: _selectedGender == 'Female' ? textColor : Colors.grey.shade500,
                                       fontWeight: FontWeight.w600,
                                     ),
                                   ),
@@ -148,15 +155,15 @@ class _GenderSelectionViewState extends State<GenderSelectionView> {
                               onTap: () => setState(() => _selectedGender = 'Male'),
                               child: Container(
                                 decoration: BoxDecoration(
-                                  color: _selectedGender == 'Male' ? Colors.white : Colors.transparent,
+                                  color: _selectedGender == 'Male' ? (isDark ? const Color(0xFF2C2C2C) : Colors.white) : Colors.transparent,
                                   borderRadius: BorderRadius.circular(25),
-                                  border: _selectedGender == 'Male' ? Border.all(color: Colors.grey.shade200) : null,
+                                  border: _selectedGender == 'Male' ? Border.all(color: isDark ? Colors.grey.shade700 : Colors.grey.shade200) : null,
                                 ),
                                 child: Center(
                                   child: Text(
                                     'Male',
                                     style: TextStyle(
-                                      color: _selectedGender == 'Male' ? Colors.black87 : Colors.grey.shade400,
+                                      color: _selectedGender == 'Male' ? textColor : Colors.grey.shade500,
                                       fontWeight: FontWeight.w600,
                                     ),
                                   ),

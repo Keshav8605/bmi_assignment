@@ -69,6 +69,16 @@ class AppTheme {
         labelStyle: TextStyle(color: textSecondaryColor, fontSize: 14),
         hintStyle: TextStyle(color: textSecondaryColor, fontSize: 14),
       ),
+      snackBarTheme: SnackBarThemeData(
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        backgroundColor: textPrimaryColor,
+        contentTextStyle: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.w500, fontSize: 14),
+        elevation: 8,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+      ),
     );
   }
 }

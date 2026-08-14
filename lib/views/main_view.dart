@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../viewmodels/user_viewmodel.dart';
 import 'dashboard_view.dart';
 import 'analytics_view.dart';
 import 'settings_view.dart';
@@ -13,11 +15,18 @@ class MainView extends StatefulWidget {
 class _MainViewState extends State<MainView> {
   int _currentIndex = 0;
 
-
   @override
   Widget build(BuildContext context) {
+    final userVM = Provider.of<UserViewModel>(context);
+    final isDark = userVM.isDarkMode;
+    
+    final bgColor = isDark ? const Color(0xFF121212) : const Color(0xFFF7F8FA);
+    final navColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
+    final primaryBlue = isDark ? const Color(0xFF6B8AFF) : const Color(0xFF4361EE);
+    final unselectedColor = isDark ? Colors.grey.shade500 : Colors.grey.shade400;
+    
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F8FA), // Light grey background like design
+      backgroundColor: bgColor,
       body: IndexedStack(
         index: _currentIndex,
         children: [
@@ -32,10 +41,10 @@ class _MainViewState extends State<MainView> {
       ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: navColor,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
+              color: isDark ? Colors.black.withValues(alpha: 0.3) : Colors.black.withValues(alpha: 0.05),
               blurRadius: 20,
               offset: const Offset(0, -5),
             ),
@@ -51,10 +60,10 @@ class _MainViewState extends State<MainView> {
                 _currentIndex = index;
               });
             },
-            backgroundColor: Colors.white,
+            backgroundColor: navColor,
             elevation: 0,
-            selectedItemColor: Theme.of(context).primaryColor,
-            unselectedItemColor: Colors.grey.shade400,
+            selectedItemColor: primaryBlue,
+            unselectedItemColor: unselectedColor,
             showSelectedLabels: true,
             showUnselectedLabels: true,
             type: BottomNavigationBarType.fixed,

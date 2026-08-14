@@ -8,9 +8,11 @@ class UserViewModel extends ChangeNotifier {
   
   bool _isKg = true;
   bool _isCm = true;
+  bool _isDarkMode = false;
 
   bool get isKg => _isKg;
   bool get isCm => _isCm;
+  bool get isDarkMode => _isDarkMode;
   UserModel? get currentUser => _currentUser;
   List<UserModel> get profiles => _authService.profiles;
 
@@ -51,12 +53,23 @@ class UserViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  void toggleTheme() {
+    _isDarkMode = !_isDarkMode;
+    notifyListeners();
+  }
+
   void updateVitals({required double weight, required double height}) {
     if (_currentUser != null) {
       _currentUser = _currentUser!.copyWith(weight: weight, height: height);
       _authService.updateCurrentUser(_currentUser!);
       notifyListeners();
     }
+  }
+
+  void updateCurrentUser(UserModel user) {
+    _currentUser = user;
+    _authService.updateCurrentUser(user);
+    notifyListeners();
   }
 
   void updateGender(String gender) {
@@ -72,6 +85,24 @@ class UserViewModel extends ChangeNotifier {
       _currentUser = _currentUser!.copyWith(
         targetWeight: targetWeight,
         targetDate: targetDate,
+      );
+      _authService.updateCurrentUser(_currentUser!);
+      notifyListeners();
+    }
+  }
+
+  void clearTarget() {
+    if (_currentUser != null) {
+      _currentUser = UserModel(
+        id: _currentUser!.id,
+        name: _currentUser!.name,
+        email: _currentUser!.email,
+        height: _currentUser!.height,
+        weight: _currentUser!.weight,
+        gender: _currentUser!.gender,
+        history: _currentUser!.history,
+        targetWeight: null,
+        targetDate: null,
       );
       _authService.updateCurrentUser(_currentUser!);
       notifyListeners();

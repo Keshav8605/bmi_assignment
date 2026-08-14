@@ -35,4 +35,16 @@ class AuthViewModel extends ChangeNotifier {
     _authService.logout();
     notifyListeners();
   }
+
+  Future<void> deleteProfile(String id) async {
+    _isLoading = true;
+    notifyListeners();
+    
+    await _authService.deleteProfile(id);
+    
+    _isLoading = false;
+    notifyListeners();
+  }
+
+  AuthService get authService => _authService;
 }

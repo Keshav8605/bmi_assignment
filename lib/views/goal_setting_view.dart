@@ -67,18 +67,25 @@ class _GoalSettingViewState extends State<GoalSettingView> {
     final userVM = Provider.of<UserViewModel>(context);
     final currentWeight = userVM.currentUser?.weight ?? 0.0;
     
+    final isDark = userVM.isDarkMode;
+    final bgColor = isDark ? const Color(0xFF121212) : const Color(0xFFF7F8FA);
+    final cardColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
+    final textColor = isDark ? Colors.white : Colors.black87;
+    final subTextColor = isDark ? Colors.grey.shade400 : Colors.grey.shade600;
+    final primaryBlue = isDark ? const Color(0xFF6B8AFF) : theme.primaryColor;
+    
     final diff = currentWeight - _targetWeight;
     final diffText = diff > 0 
       ? "Lose ${diff.toStringAsFixed(1)} kg" 
       : (diff < 0 ? "Gain ${diff.abs().toStringAsFixed(1)} kg" : "Maintain weight");
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F8FA),
+      backgroundColor: bgColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black87),
+          icon: Icon(Icons.arrow_back, color: textColor),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -92,13 +99,13 @@ class _GoalSettingViewState extends State<GoalSettingView> {
                 "Set Your Goal",
                 style: theme.textTheme.displaySmall?.copyWith(
                   fontWeight: FontWeight.bold,
-                  color: Colors.black87,
+                  color: textColor,
                 ),
               ),
               const SizedBox(height: 8),
               Text(
                 "Define your target weight and timeframe to stay motivated.",
-                style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
+                style: TextStyle(color: subTextColor, fontSize: 16),
               ),
               const SizedBox(height: 48),
               
@@ -106,11 +113,11 @@ class _GoalSettingViewState extends State<GoalSettingView> {
               Container(
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: cardColor,
                   borderRadius: BorderRadius.circular(24),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.03),
+                      color: isDark ? Colors.black26 : Colors.black.withValues(alpha: 0.03),
                       blurRadius: 15,
                       offset: const Offset(0, 5),
                     )
@@ -121,20 +128,20 @@ class _GoalSettingViewState extends State<GoalSettingView> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text("Target Weight", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                        Text("Target Weight", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: textColor)),
                         Text(
                           "${_targetWeight.toStringAsFixed(1)} kg",
-                          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: theme.primaryColor),
+                          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: primaryBlue),
                         ),
                       ],
                     ),
                     const SizedBox(height: 24),
                     SliderTheme(
                       data: SliderTheme.of(context).copyWith(
-                        activeTrackColor: theme.primaryColor,
-                        inactiveTrackColor: theme.primaryColor.withValues(alpha: 0.2),
-                        thumbColor: theme.primaryColor,
-                        overlayColor: theme.primaryColor.withValues(alpha: 0.1),
+                        activeTrackColor: primaryBlue,
+                        inactiveTrackColor: primaryBlue.withValues(alpha: 0.2),
+                        thumbColor: primaryBlue,
+                        overlayColor: primaryBlue.withValues(alpha: 0.1),
                         trackHeight: 8,
                       ),
                       child: Slider(
@@ -152,13 +159,13 @@ class _GoalSettingViewState extends State<GoalSettingView> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                       decoration: BoxDecoration(
-                        color: diff > 0 ? Colors.green.withValues(alpha: 0.1) : Colors.blue.withValues(alpha: 0.1),
+                        color: diff > 0 ? Colors.green.withValues(alpha: 0.1) : primaryBlue.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
                         diffText,
                         style: TextStyle(
-                          color: diff > 0 ? Colors.green.shade700 : Colors.blue.shade700,
+                          color: diff > 0 ? Colors.green.shade700 : primaryBlue,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -175,11 +182,11 @@ class _GoalSettingViewState extends State<GoalSettingView> {
                 child: Container(
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: cardColor,
                     borderRadius: BorderRadius.circular(24),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.03),
+                        color: isDark ? Colors.black26 : Colors.black.withValues(alpha: 0.03),
                         blurRadius: 15,
                         offset: const Offset(0, 5),
                       )
@@ -191,21 +198,21 @@ class _GoalSettingViewState extends State<GoalSettingView> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text("Target Date", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                          Text("Target Date", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: textColor)),
                           const SizedBox(height: 8),
                           Text(
                             "${_targetDate.day}/${_targetDate.month}/${_targetDate.year}",
-                            style: TextStyle(fontSize: 16, color: Colors.grey.shade600, fontWeight: FontWeight.w500),
+                            style: TextStyle(fontSize: 16, color: subTextColor, fontWeight: FontWeight.w500),
                           ),
                         ],
                       ),
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: theme.primaryColor.withValues(alpha: 0.1),
+                          color: primaryBlue.withValues(alpha: 0.1),
                           shape: BoxShape.circle,
                         ),
-                        child: Icon(Icons.calendar_month, color: theme.primaryColor),
+                        child: Icon(Icons.calendar_month, color: primaryBlue),
                       ),
                     ],
                   ),
@@ -219,7 +226,7 @@ class _GoalSettingViewState extends State<GoalSettingView> {
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  backgroundColor: theme.primaryColor,
+                  backgroundColor: primaryBlue,
                   foregroundColor: Colors.white,
                   elevation: 0,
                 ),

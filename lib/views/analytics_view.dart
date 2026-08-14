@@ -4,6 +4,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 import '../viewmodels/user_viewmodel.dart';
 import '../models/bmi_record_model.dart';
+import '../utils/dialogs.dart';
 import 'widgets/premium_loader.dart';
 
 enum ChartPeriod { days7, days30, months3, year1 }
@@ -57,16 +58,20 @@ class _AnalyticsViewState extends State<AnalyticsView> {
     required String title,
     required String value,
     required Color iconColor,
+    required Color cardColor,
+    required Color textColor,
+    required Color subTextColor,
+    required bool isDark,
   }) {
     return Expanded(
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: cardColor,
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.02),
+              color: isDark ? Colors.black26 : Colors.black.withValues(alpha: 0.02),
               blurRadius: 10,
               offset: const Offset(0, 4),
             )
@@ -91,7 +96,7 @@ class _AnalyticsViewState extends State<AnalyticsView> {
                   child: Text(
                     title,
                     style: TextStyle(
-                      color: Colors.grey.shade500,
+                      color: subTextColor,
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
                     ),
@@ -104,10 +109,10 @@ class _AnalyticsViewState extends State<AnalyticsView> {
             const SizedBox(height: 16),
             Text(
               value,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.w800,
-                color: Colors.black87,
+                color: textColor,
               ),
             ),
           ],
@@ -118,9 +123,15 @@ class _AnalyticsViewState extends State<AnalyticsView> {
 
   @override
   Widget build(BuildContext context) {
-    const bgColor = Color(0xFFF4F6F9); // Light grayish blue from image
-    const primaryBlue = Color(0xFF4361EE);
-    const cyanAccent = Color(0xFF00E5FF);
+    final userVM = Provider.of<UserViewModel>(context);
+    final isDark = userVM.isDarkMode;
+
+    final bgColor = isDark ? const Color(0xFF121212) : const Color(0xFFF4F6F9);
+    final cardColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
+    final primaryBlue = isDark ? const Color(0xFF6B8AFF) : const Color(0xFF4361EE);
+    final cyanAccent = const Color(0xFF00E5FF);
+    final textColor = isDark ? Colors.white : Colors.black87;
+    final subTextColor = isDark ? Colors.grey.shade400 : Colors.grey.shade500;
     
     return Scaffold(
       backgroundColor: bgColor,
@@ -151,37 +162,26 @@ class _AnalyticsViewState extends State<AnalyticsView> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
+                        Text(
                           "Analytics",
                           style: TextStyle(
                             fontSize: 28, 
                             fontWeight: FontWeight.bold,
-                            color: Colors.black87,
+                            color: textColor,
                           ),
                         ),
                         Row(
                           children: [
-                            Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                shape: BoxShape.circle,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.02),
-                                    blurRadius: 5,
-                                  )
-                                ],
-                              ),
-                              child: const Icon(Icons.dark_mode_outlined, size: 20, color: Colors.black54),
-                            ),
-                            const SizedBox(width: 12),
-                            CircleAvatar(
-                              radius: 20,
-                              backgroundColor: primaryBlue.withValues(alpha: 0.1),
-                              child: Text(
-                                user.name.isNotEmpty ? user.name[0].toUpperCase() : 'U',
-                                style: const TextStyle(color: primaryBlue, fontWeight: FontWeight.bold),
+
+                            GestureDetector(
+                              onTap: () => showEditProfileDialog(context, user),
+                              child: CircleAvatar(
+                                radius: 20,
+                                backgroundColor: primaryBlue.withValues(alpha: 0.1),
+                                child: Text(
+                                  user.name.isNotEmpty ? user.name[0].toUpperCase() : 'U',
+                                  style: TextStyle(color: primaryBlue, fontWeight: FontWeight.bold),
+                                ),
                               ),
                             ),
                           ],
@@ -198,6 +198,10 @@ class _AnalyticsViewState extends State<AnalyticsView> {
                           title: "Current BMI",
                           value: userVM.bmiValue.toStringAsFixed(1),
                           iconColor: primaryBlue,
+                          cardColor: cardColor,
+                          textColor: textColor,
+                          subTextColor: subTextColor,
+                          isDark: isDark,
                         ),
                         const SizedBox(width: 16),
                         _buildStatCard(
@@ -205,6 +209,10 @@ class _AnalyticsViewState extends State<AnalyticsView> {
                           title: "Weight",
                           value: "${user.weight.toStringAsFixed(1)} kg",
                           iconColor: primaryBlue,
+                          cardColor: cardColor,
+                          textColor: textColor,
+                          subTextColor: subTextColor,
+                          isDark: isDark,
                         ),
                       ],
                     ),
@@ -216,6 +224,10 @@ class _AnalyticsViewState extends State<AnalyticsView> {
                           title: "Height",
                           value: "${user.height.toStringAsFixed(0)} cm",
                           iconColor: primaryBlue,
+                          cardColor: cardColor,
+                          textColor: textColor,
+                          subTextColor: subTextColor,
+                          isDark: isDark,
                         ),
                         const SizedBox(width: 16),
                         _buildStatCard(
@@ -223,6 +235,10 @@ class _AnalyticsViewState extends State<AnalyticsView> {
                           title: "Status",
                           value: userVM.bmiCategory,
                           iconColor: primaryBlue,
+                          cardColor: cardColor,
+                          textColor: textColor,
+                          subTextColor: subTextColor,
+                          isDark: isDark,
                         ),
                       ],
                     ),
@@ -232,11 +248,11 @@ class _AnalyticsViewState extends State<AnalyticsView> {
                     Container(
                       padding: const EdgeInsets.all(24),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: cardColor,
                         borderRadius: BorderRadius.circular(24),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.02),
+                            color: isDark ? Colors.black26 : Colors.black.withValues(alpha: 0.02),
                             blurRadius: 10,
                             offset: const Offset(0, 4),
                           )
@@ -248,34 +264,62 @@ class _AnalyticsViewState extends State<AnalyticsView> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Text(
+                              Text(
                                 "Weight Trend",
                                 style: TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.black87,
+                                  color: textColor,
                                 ),
                               ),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                decoration: BoxDecoration(
-                                  color: bgColor,
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: Row(
-                                  children: [
-                                    Text(
-                                      _selectedPeriod == ChartPeriod.days30 ? "Monthly" : 
-                                      _selectedPeriod == ChartPeriod.days7 ? "Weekly" : "Yearly",
-                                      style: TextStyle(
-                                        fontSize: 12, 
-                                        fontWeight: FontWeight.w600,
-                                        color: Colors.grey.shade700
+                              PopupMenuButton<ChartPeriod>(
+                                initialValue: _selectedPeriod,
+                                color: cardColor,
+                                onSelected: (ChartPeriod result) {
+                                  setState(() {
+                                    _selectedPeriod = result;
+                                  });
+                                },
+                                itemBuilder: (BuildContext context) => <PopupMenuEntry<ChartPeriod>>[
+                                  PopupMenuItem<ChartPeriod>(
+                                    value: ChartPeriod.days7,
+                                    child: Text('Weekly', style: TextStyle(color: textColor)),
+                                  ),
+                                  PopupMenuItem<ChartPeriod>(
+                                    value: ChartPeriod.days30,
+                                    child: Text('Monthly', style: TextStyle(color: textColor)),
+                                  ),
+                                  PopupMenuItem<ChartPeriod>(
+                                    value: ChartPeriod.months3,
+                                    child: Text('3 Months', style: TextStyle(color: textColor)),
+                                  ),
+                                  PopupMenuItem<ChartPeriod>(
+                                    value: ChartPeriod.year1,
+                                    child: Text('Yearly', style: TextStyle(color: textColor)),
+                                  ),
+                                ],
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                  decoration: BoxDecoration(
+                                    color: bgColor,
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Text(
+                                        _selectedPeriod == ChartPeriod.days30 ? "Monthly" : 
+                                        _selectedPeriod == ChartPeriod.days7 ? "Weekly" : 
+                                        _selectedPeriod == ChartPeriod.months3 ? "3 Months" : "Yearly",
+                                        style: TextStyle(
+                                          fontSize: 12, 
+                                          fontWeight: FontWeight.w600,
+                                          color: subTextColor
+                                        ),
                                       ),
-                                    ),
-                                    const SizedBox(width: 4),
-                                    Icon(Icons.keyboard_arrow_down, size: 14, color: Colors.grey.shade700),
-                                  ],
+                                      const SizedBox(width: 4),
+                                      Icon(Icons.keyboard_arrow_down, size: 14, color: subTextColor),
+                                    ],
+                                  ),
                                 ),
                               ),
                             ],
@@ -288,9 +332,10 @@ class _AnalyticsViewState extends State<AnalyticsView> {
                                 children: [
                                   Text(
                                     "${user.weight.toStringAsFixed(1)} kg",
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 22,
                                       fontWeight: FontWeight.bold,
+                                      color: textColor,
                                     ),
                                   ),
                                   const SizedBox(height: 4),
@@ -298,7 +343,7 @@ class _AnalyticsViewState extends State<AnalyticsView> {
                                     "Current Wt",
                                     style: TextStyle(
                                       fontSize: 12,
-                                      color: Colors.grey.shade500,
+                                      color: subTextColor,
                                       fontWeight: FontWeight.w500,
                                     ),
                                   )
@@ -310,9 +355,10 @@ class _AnalyticsViewState extends State<AnalyticsView> {
                                 children: [
                                   Text(
                                     startWeight,
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 22,
                                       fontWeight: FontWeight.bold,
+                                      color: textColor,
                                     ),
                                   ),
                                   const SizedBox(height: 4),
@@ -320,7 +366,7 @@ class _AnalyticsViewState extends State<AnalyticsView> {
                                     "Start Wt",
                                     style: TextStyle(
                                       fontSize: 12,
-                                      color: Colors.grey.shade500,
+                                      color: subTextColor,
                                       fontWeight: FontWeight.w500,
                                     ),
                                   )
@@ -354,7 +400,7 @@ class _AnalyticsViewState extends State<AnalyticsView> {
                                     verticalInterval: 1,
                                     horizontalInterval: 5,
                                     getDrawingHorizontalLine: (value) => FlLine(
-                                      color: Colors.grey.withValues(alpha: 0.1),
+                                      color: isDark ? Colors.grey.shade800 : Colors.grey.withValues(alpha: 0.1),
                                       strokeWidth: 1,
                                     ),
                                     getDrawingVerticalLine: (value) => FlLine(
@@ -380,7 +426,7 @@ class _AnalyticsViewState extends State<AnalyticsView> {
                                             child: Text(
                                               dayStr,
                                               style: TextStyle(
-                                                color: Colors.grey.shade400, 
+                                                color: subTextColor, 
                                                 fontSize: 12,
                                                 fontWeight: FontWeight.w600,
                                               ),
@@ -397,7 +443,7 @@ class _AnalyticsViewState extends State<AnalyticsView> {
                                           return Text(
                                             "${value.toInt()}k", // adding 'k' just to match the visual style of the image loosely if we wanted to, but we're plotting weight, so kg is better.
                                             style: TextStyle(
-                                              color: Colors.grey.shade400, 
+                                              color: subTextColor, 
                                               fontSize: 11,
                                               fontWeight: FontWeight.w500,
                                             ),

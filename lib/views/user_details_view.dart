@@ -58,15 +58,22 @@ class _UserDetailsViewState extends State<UserDetailsView> {
     required String firstLabel,
     required String secondLabel,
     required VoidCallback onToggle,
+    required bool isDark,
   }) {
+    final bgColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
+    final activeBgColor = isDark ? const Color(0xFF2C2C2C) : Colors.grey.shade200;
+    final activeTextColor = isDark ? Colors.white : Colors.black;
+    final inactiveTextColor = isDark ? Colors.grey.shade500 : Colors.grey;
+    final borderColor = isDark ? Colors.grey.shade800 : Colors.grey.shade300;
+
     return GestureDetector(
       onTap: onToggle,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: bgColor,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.grey.shade300),
+          border: Border.all(color: borderColor),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -74,18 +81,18 @@ class _UserDetailsViewState extends State<UserDetailsView> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
               decoration: BoxDecoration(
-                color: isFirstActive ? Colors.grey.shade200 : Colors.transparent,
+                color: isFirstActive ? activeBgColor : Colors.transparent,
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: Text(firstLabel, style: TextStyle(fontSize: 10, fontWeight: isFirstActive ? FontWeight.bold : FontWeight.normal, color: isFirstActive ? Colors.black : Colors.grey)),
+              child: Text(firstLabel, style: TextStyle(fontSize: 10, fontWeight: isFirstActive ? FontWeight.bold : FontWeight.normal, color: isFirstActive ? activeTextColor : inactiveTextColor)),
             ),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
               decoration: BoxDecoration(
-                color: !isFirstActive ? Colors.grey.shade200 : Colors.transparent,
+                color: !isFirstActive ? activeBgColor : Colors.transparent,
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: Text(secondLabel, style: TextStyle(fontSize: 10, fontWeight: !isFirstActive ? FontWeight.bold : FontWeight.normal, color: !isFirstActive ? Colors.black : Colors.grey)),
+              child: Text(secondLabel, style: TextStyle(fontSize: 10, fontWeight: !isFirstActive ? FontWeight.bold : FontWeight.normal, color: !isFirstActive ? activeTextColor : inactiveTextColor)),
             ),
           ],
         ),
@@ -98,9 +105,12 @@ class _UserDetailsViewState extends State<UserDetailsView> {
     final userVM = Provider.of<UserViewModel>(context);
     final String gender = userVM.currentUser?.gender ?? 'Female';
     final String imageAsset = gender == 'Female' ? 'assets/images/female.png' : 'assets/images/male.png';
-    const pinkAccent = Color(0xFFED5D73);
-    const purpleSlider = Color(0xFF9E4784); // Purple from image
-    const bgColor = Color(0xFFF7F8FA);
+    final isDark = userVM.isDarkMode;
+
+    final bgColor = isDark ? const Color(0xFF121212) : const Color(0xFFF7F8FA);
+    final textColor = isDark ? Colors.white : Colors.black87;
+    final pinkAccent = isDark ? const Color(0xFFFF7B93) : const Color(0xFFED5D73);
+    final purpleSlider = isDark ? const Color(0xFFC062A4) : const Color(0xFF9E4784); // Purple from image
 
     return Scaffold(
       backgroundColor: bgColor,
@@ -113,15 +123,15 @@ class _UserDetailsViewState extends State<UserDetailsView> {
               Row(
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.arrow_back),
+                    icon: Icon(Icons.arrow_back, color: textColor),
                     onPressed: () => Navigator.pop(context),
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
                   ),
                   const SizedBox(width: 16),
-                  const Text(
+                  Text(
                     'Your height & weight',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: textColor),
                   ),
                 ],
               ),
@@ -134,7 +144,8 @@ class _UserDetailsViewState extends State<UserDetailsView> {
                   _buildUnitToggle(
                     isFirstActive: _isKg, 
                     firstLabel: 'kg', 
-                    secondLabel: 'lbs', 
+                    secondLabel: 'lbs',
+                    isDark: isDark,
                     onToggle: () {
                       setState(() {
                         if (_isKg) {
@@ -150,6 +161,7 @@ class _UserDetailsViewState extends State<UserDetailsView> {
                     isFirstActive: _isCm, 
                     firstLabel: 'cm', 
                     secondLabel: 'ft', 
+                    isDark: isDark,
                     onToggle: () {
                       setState(() {
                         if (_isCm) {

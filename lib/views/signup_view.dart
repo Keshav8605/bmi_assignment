@@ -26,12 +26,17 @@ class _SignupViewState extends State<SignupView> {
   }
 
   void _signup() async {
+    final name = _nameController.text.trim();
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+
+    if (name.isEmpty || email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please complete all required fields.')));
+      return;
+    }
+
     final authVM = Provider.of<AuthViewModel>(context, listen: false);
-    final success = await authVM.register(
-      _nameController.text, 
-      _emailController.text, 
-      _passwordController.text
-    );
+    final success = await authVM.register(name, email, password);
     
     if (success && mounted) {
       Provider.of<UserViewModel>(context, listen: false).loadUser();

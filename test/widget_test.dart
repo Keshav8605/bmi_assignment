@@ -23,7 +23,7 @@ void main() {
       ),
     );
 
-    // Verify that login screen text is present
-    expect(find.text('Sign In'), findsOneWidget);
+    // Verify that splash screen text is present
+    expect(find.text('Welcome to Vermo — Know Your BMI, Instantly.'), findsOneWidget);
   });
 }

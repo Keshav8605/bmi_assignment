@@ -15,27 +15,27 @@ class _SplashViewState extends State<SplashView> {
   @override
   void initState() {
     super.initState();
-    _navigateToNext();
+    _checkAuth();
   }
 
-  Future<void> _navigateToNext() async {
-    // Wait for 2.5 seconds to show splash
-    await Future.delayed(const Duration(milliseconds: 2500));
-    
-    if (!mounted) return;
-
+  Future<void> _checkAuth() async {
     final userVM = Provider.of<UserViewModel>(context, listen: false);
-
+    
     if (userVM.currentUser != null) {
+      // If authenticated, small delay to show splash animation gracefully, then navigate to Dashboard
+      await Future.delayed(const Duration(milliseconds: 1200));
+      if (!mounted) return;
       userVM.loadUser();
       Navigator.pushReplacementNamed(context, AppRoutes.main);
-    } else {
-      Navigator.pushReplacementNamed(context, AppRoutes.login);
     }
+    // If not authenticated, we do nothing and wait for the "Get Started" button press.
   }
 
   @override
   Widget build(BuildContext context) {
+    final userVM = Provider.of<UserViewModel>(context);
+    final isLoggedIn = userVM.currentUser != null;
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: Center(
@@ -62,8 +62,36 @@ class _SplashViewState extends State<SplashView> {
                   ),
                 ),
               ),
-              // Extra space at bottom offsets the content slightly upwards
-              const SizedBox(height: 80),
+              const SizedBox(height: 48),
+              if (!isLoggedIn)
+                SizedBox(
+                  width: double.infinity,
+                  height: 56,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.pushReplacementNamed(context, AppRoutes.login);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF4361EE),
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                    child: const Text(
+                      'Get Started',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              if (isLoggedIn)
+                const SizedBox(height: 56), // Keep layout stable
+                
+              const SizedBox(height: 32),
             ],
           ),
         ),

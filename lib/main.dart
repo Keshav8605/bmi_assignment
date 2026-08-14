@@ -36,6 +36,9 @@ class BmiApp extends StatelessWidget {
       title: 'Premium BMI App',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
+      scrollBehavior: const MaterialScrollBehavior().copyWith(
+        physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+      ),
       initialRoute: AppRoutes.splash,
       routes: AppRoutes.routes,
     );
