@@ -4,6 +4,7 @@ import '../viewmodels/user_viewmodel.dart';
 import '../viewmodels/auth_viewmodel.dart';
 import '../utils/app_routes.dart';
 import 'widgets/premium_loader.dart';
+import '../services/pdf_service.dart';
 
 class DashboardView extends StatefulWidget {
   final VoidCallback? onAnalyticsTap;
@@ -160,6 +161,30 @@ class _DashboardViewState extends State<DashboardView> {
                     const SizedBox(height: 32),
                     
                     Text("Quick Actions", style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildQuickActionCard(
+                            context,
+                            icon: Icons.history,
+                            title: "View History",
+                            color: Colors.orange,
+                            onTap: () => Navigator.pushNamed(context, AppRoutes.main),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: _buildQuickActionCard(
+                            context,
+                            icon: Icons.picture_as_pdf,
+                            title: "Export Report",
+                            color: Colors.redAccent,
+                            onTap: () => _showExportOptions(context, user, userVM),
+                          ),
+                        ),
+                      ],
+                    ),
                     const SizedBox(height: 16),
                     Row(
                       children: [
@@ -372,6 +397,88 @@ class _DashboardViewState extends State<DashboardView> {
           ],
         ),
       ),
+    );
+  }
+  
+  void _showExportOptions(BuildContext context, user, UserViewModel userVM) {
+    final pdfService = PdfService();
+    
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 24.0, horizontal: 16.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                const Text(
+                  "Export Health Report",
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  "Generate a PDF containing your profile, BMI, and history.",
+                  style: TextStyle(color: Colors.grey.shade600),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 32),
+                ListTile(
+                  leading: CircleAvatar(
+                    backgroundColor: Colors.blue.withValues(alpha: 0.1),
+                    child: const Icon(Icons.download, color: Colors.blue),
+                  ),
+                  title: const Text("Download PDF", style: TextStyle(fontWeight: FontWeight.w600)),
+                  subtitle: const Text("Save to your device"),
+                  onTap: () async {
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Generating PDF...')),
+                    );
+                    final path = await pdfService.downloadReport(user, userVM);
+                    if (!context.mounted) return;
+                    if (path != null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Saved to: $path')),
+                      );
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Failed to save PDF.')),
+                      );
+                    }
+                  },
+                ),
+                const SizedBox(height: 8),
+                ListTile(
+                  leading: CircleAvatar(
+                    backgroundColor: Colors.green.withValues(alpha: 0.1),
+                    child: const Icon(Icons.share, color: Colors.green),
+                  ),
+                  title: const Text("Share Report", style: TextStyle(fontWeight: FontWeight.w600)),
+                  subtitle: const Text("Send via WhatsApp, Email, etc."),
+                  onTap: () {
+                    Navigator.pop(context);
+                    pdfService.shareReport(user, userVM);
+                  },
+                ),
+                const SizedBox(height: 16),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }
