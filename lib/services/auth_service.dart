@@ -3,8 +3,11 @@ import 'dart:convert';
 import 'dart:math';
 import '../models/user_model.dart';
 import '../models/bmi_record_model.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class AuthService {
+  final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
+
   UserModel? _currentUser;
   List<UserModel> _profiles = [];
   
@@ -87,45 +90,73 @@ class AuthService {
   }
 
   Future<bool> login(String email, String password) async {
-    await Future.delayed(const Duration(milliseconds: 800));
-    
-    final matchedProfile = _profiles.cast<UserModel?>().firstWhere(
-      (p) => p?.email == email, 
-      orElse: () => null
-    );
-    
-    // Accept matching email and a generic 'password123' for dummy accounts, or newly registered ones
-    if (matchedProfile != null && (password == 'password123' || password.isNotEmpty)) {
-      _currentUser = matchedProfile;
-      await _persistState();
-      return true;
+    try {
+      UserCredential userCredential = await _firebaseAuth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      
+      User? firebaseUser = userCredential.user;
+      if (firebaseUser != null) {
+        var matchedProfile = _profiles.cast<UserModel?>().firstWhere(
+          (p) => p?.email == email, 
+          orElse: () => null
+        );
+
+        if (matchedProfile == null) {
+          matchedProfile = UserModel(
+            id: firebaseUser.uid,
+            name: firebaseUser.displayName ?? 'Firebase User',
+            email: email,
+            height: 170.0,
+            weight: 65.0,
+            gender: 'Other',
+            history: [],
+          );
+          _profiles.add(matchedProfile);
+        }
+
+        _currentUser = matchedProfile;
+        await _persistState();
+        return true;
+      }
+    } catch (e) {
+      // Login failed
+      return false;
     }
-    
-    // Fallback for default test credentials
-    if (email == 'test@example.com' && password == 'password123') {
-      _currentUser = _profiles.first; // John Doe
-      await _persistState();
-      return true;
-    }
-    
     return false;
   }
 
   Future<bool> register(String name, String email, String password) async {
-    await Future.delayed(const Duration(milliseconds: 800));
-    final newUser = UserModel(
-      id: 'user_${DateTime.now().millisecondsSinceEpoch}',
-      name: name,
-      email: email,
-      height: 170.0,
-      weight: 65.0,
-      gender: 'Other',
-      history: [],
-    );
-    _profiles.add(newUser);
-    _currentUser = newUser;
-    await _persistState();
-    return true;
+    try {
+      UserCredential userCredential = await _firebaseAuth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      
+      User? firebaseUser = userCredential.user;
+      if (firebaseUser != null) {
+        await firebaseUser.updateDisplayName(name);
+        
+        final newUser = UserModel(
+          id: firebaseUser.uid,
+          name: name,
+          email: email,
+          height: 170.0,
+          weight: 65.0,
+          gender: 'Other',
+          history: [],
+        );
+        _profiles.add(newUser);
+        _currentUser = newUser;
+        await _persistState();
+        return true;
+      }
+    } catch (e) {
+      print("Error registering with email: $e");
+      return false;
+    }
+    return false;
   }
 
   void switchProfile(String id) {

@@ -51,15 +51,7 @@ class _LoginViewState extends State<LoginView> {
   }
 
   void _googleLogin() async {
-    try {
-      // Simulated Google login flow
-      await Future.delayed(const Duration(milliseconds: 500));
-      throw Exception('cancelled'); // Simulate cancellation by user
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Google login cancelled. Returned gracefully.')));
-      }
-    }
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Google login is not enabled in this version.')));
   }
 
   @override

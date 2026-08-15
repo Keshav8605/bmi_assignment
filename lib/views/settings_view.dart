@@ -287,7 +287,7 @@ class _SettingsViewState extends State<SettingsView> {
                     title: Text("Dark Mode", style: TextStyle(fontWeight: FontWeight.w600, color: textColor)),
                     subtitle: Text("Toggle premium dark aesthetic", style: TextStyle(fontSize: 12, color: subTextColor)),
                     value: userVM.isDarkMode,
-                    activeColor: primaryBlue,
+                    activeThumbColor: primaryBlue,
                     onChanged: (val) => userVM.toggleTheme(),
                     secondary: Container(
                       padding: const EdgeInsets.all(10),
