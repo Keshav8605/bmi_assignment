@@ -41,7 +41,7 @@ class PdfService {
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
         pw.Text(
-          'VERMO — BMI REPORT',
+          'VERO — BMI REPORT',
           style: pw.TextStyle(
             fontSize: 28,
             fontWeight: pw.FontWeight.bold,
@@ -165,7 +165,7 @@ class PdfService {
         pw.Divider(color: PdfColors.grey400),
         pw.SizedBox(height: 8),
         pw.Text(
-          'Vermo Health App — Confidentially generated for user',
+          'Vero Health App — Confidentially generated for user',
           style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey600),
         ),
       ],
@@ -175,7 +175,7 @@ class PdfService {
   Future<File> _savePdf(UserModel user, UserViewModel userVM) async {
     final pdf = await _generateReport(user, userVM);
     final output = await getTemporaryDirectory();
-    final file = File('${output.path}/Vermo_Health_Report.pdf');
+    final file = File('${output.path}/Vero_Health_Report.pdf');
     await file.writeAsBytes(await pdf.save());
     return file;
   }
@@ -195,7 +195,7 @@ class PdfService {
       }
 
       if (directory != null) {
-        final filePath = '${directory.path}/Vermo_Report_${DateTime.now().millisecondsSinceEpoch}.pdf';
+        final filePath = '${directory.path}/Vero_Report_${DateTime.now().millisecondsSinceEpoch}.pdf';
         final file = File(filePath);
         await file.writeAsBytes(await pdf.save());
         return filePath;
@@ -213,8 +213,8 @@ class PdfService {
       await SharePlus.instance.share(
         ShareParams(
           files: [XFile(file.path)],
-          text: 'Here is my latest Vermo Health & BMI Report. Stay healthy! 🚀',
-          title: 'Vermo Health Report',
+          text: 'Here is my latest Vero Health & BMI Report. Stay healthy! 🚀',
+          title: 'Vero Health Report',
         ),
       );
     } catch (e) {

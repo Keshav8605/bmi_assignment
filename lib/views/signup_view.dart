@@ -102,7 +102,7 @@ class _SignupViewState extends State<SignupView> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(
-                  'Register to Vermo',
+                  'Register to Vero',
                   style: theme.textTheme.displaySmall?.copyWith(fontWeight: FontWeight.w900),
                 ),
                 const SizedBox(height: 32),
@@ -163,7 +163,7 @@ class _SignupViewState extends State<SignupView> {
                         text: 'Privacy Policy',
                         style: TextStyle(color: theme.primaryColor, fontWeight: FontWeight.bold),
                       ),
-                      const TextSpan(text: ' of the Vermo'),
+                      const TextSpan(text: ' of the Vero'),
                     ],
                   ),
                 ),

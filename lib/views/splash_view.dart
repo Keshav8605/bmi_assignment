@@ -86,7 +86,7 @@ class _SplashViewState extends State<SplashView> {
                   return const Icon(
                     Icons.favorite_rounded,
                     size: 80,
-                    color: Color(0xFFF92B54),
+                    color: Color(0xFF4361EE),
                   );
                 },
               ),
@@ -94,7 +94,7 @@ class _SplashViewState extends State<SplashView> {
               const FittedBox(
                 fit: BoxFit.scaleDown,
                 child: Text(
-                  'Welcome to Vermo — Know Your BMI, Instantly.',
+                  'Welcome to Vero — Know Your BMI, Instantly.',
                   style: TextStyle(
                     color: Colors.black,
                     fontSize: 18,
@@ -109,7 +109,7 @@ class _SplashViewState extends State<SplashView> {
                   height: 24,
                   child: CircularProgressIndicator(
                     strokeWidth: 2.5,
-                    color: Color(0xFFF92B54),
+                    color: Color(0xFF4361EE),
                   ),
                 ),
               if (_initDone && !isLoggedIn)

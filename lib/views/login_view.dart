@@ -94,7 +94,7 @@ class _LoginViewState extends State<LoginView> {
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        'Vermo',
+                        'Vero',
                         style: theme.textTheme.displaySmall?.copyWith(fontWeight: FontWeight.w900),
                       ),
                     ],

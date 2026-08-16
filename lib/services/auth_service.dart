@@ -175,62 +175,62 @@ class AuthService {
     final googleSignIn = _googleSignIn;
     final auth = _auth;
 
-    if (googleSignIn != null && auth != null) {
-      try {
-        final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
-        if (googleUser == null) return false;
+    if (googleSignIn == null) return false;
 
-        final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+    try {
+      final GoogleSignInAccount? googleAccount = await googleSignIn.signIn();
+      if (googleAccount == null) return false;
 
-        final AuthCredential credential = GoogleAuthProvider.credential(
-          accessToken: googleAuth.accessToken,
-          idToken: googleAuth.idToken,
-        );
+      // Always capture the real name and email from the Google account.
+      String displayName = googleAccount.displayName ?? googleAccount.email.split('@').first;
+      String email = googleAccount.email;
 
-        UserCredential userCredential = await auth.signInWithCredential(credential);
-        User? firebaseUser = userCredential.user;
-
-        if (firebaseUser != null) {
-          var matchedProfile = _profiles.cast<UserModel?>().firstWhere(
-            (p) => p?.email == firebaseUser.email,
-            orElse: () => null,
+      // Try Firebase auth if available, but don't fail if it doesn't work.
+      if (auth != null) {
+        try {
+          final GoogleSignInAuthentication googleAuth = await googleAccount.authentication;
+          final AuthCredential credential = GoogleAuthProvider.credential(
+            accessToken: googleAuth.accessToken,
+            idToken: googleAuth.idToken,
           );
-
-          if (matchedProfile == null) {
-            matchedProfile = UserModel(
-              id: firebaseUser.uid,
-              name: firebaseUser.displayName ?? 'Google User',
-              email: firebaseUser.email ?? '',
-              height: 170.0,
-              weight: 65.0,
-              gender: 'Other',
-              history: [],
-            );
-            _profiles.add(matchedProfile);
+          UserCredential userCredential = await auth.signInWithCredential(credential);
+          User? firebaseUser = userCredential.user;
+          if (firebaseUser != null) {
+            displayName = firebaseUser.displayName ?? displayName;
+            email = firebaseUser.email ?? email;
           }
-
-          _currentUser = matchedProfile;
-          await _persistState();
-          return true;
+        } catch (e) {
+          debugPrint('Firebase Google credential error: $e');
         }
-      } catch (e) {
-        debugPrint('Google sign in error: $e');
       }
+
+      // Find or create profile using the real Google account name.
+      var matchedProfile = _profiles.cast<UserModel?>().firstWhere(
+        (p) => p?.email.toLowerCase() == email.toLowerCase(),
+        orElse: () => null,
+      );
+
+      if (matchedProfile == null) {
+        matchedProfile = UserModel(
+          id: 'google_${DateTime.now().millisecondsSinceEpoch}',
+          name: displayName,
+          email: email,
+          height: 170.0,
+          weight: 65.0,
+          gender: 'Other',
+          history: [],
+        );
+        _profiles.add(matchedProfile);
+      }
+
+      _currentUser = matchedProfile;
+      await _persistState();
+      return true;
+    } catch (e) {
+      debugPrint('Google sign in error: $e');
     }
 
-    final googleUser = UserModel(
-      id: 'google_user_${DateTime.now().millisecondsSinceEpoch}',
-      name: 'Google User',
-      email: 'user@gmail.com',
-      height: 170.0,
-      weight: 68.0,
-      gender: 'Other',
-      history: [],
-    );
-    _profiles.add(googleUser);
-    _currentUser = googleUser;
-    await _persistState();
-    return true;
+    return false;
   }
 
   Future<bool> register(String name, String email, String password) async {

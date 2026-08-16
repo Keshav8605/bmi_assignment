@@ -40,7 +40,7 @@ class BmiApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Vermo',
+      title: 'Vero',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       scrollBehavior: const MaterialScrollBehavior().copyWith(

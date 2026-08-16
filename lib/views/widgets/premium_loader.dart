@@ -35,7 +35,7 @@ class PremiumLoader extends StatelessWidget {
                           height: 50,
                           child: CircularProgressIndicator(
                             strokeWidth: 3,
-                            color: Color(0xFFF92B54),
+                            color: Color(0xFF4361EE),
                           ),
                         );
                       },
