@@ -116,6 +116,7 @@ class AuthService {
   Future<bool> login(String email, String password) async {
     final auth = _auth;
     if (auth != null) {
+      // Firebase is available — use it as the sole authentication source.
       try {
         UserCredential userCredential = await auth.signInWithEmailAndPassword(
           email: email,
@@ -148,9 +149,14 @@ class AuthService {
         }
       } catch (e) {
         debugPrint('Firebase login error: $e');
+        // Firebase explicitly rejected the credentials — do NOT fall through
+        // to local matching. Return false so the user sees an error.
+        return false;
       }
     }
 
+    // Only reach here if Firebase is completely unavailable (auth == null).
+    // In that case, allow local profile matching as a fallback.
     var localProfile = _profiles.cast<UserModel?>().firstWhere(
       (p) => p?.email.toLowerCase() == email.toLowerCase(),
       orElse: () => null,
@@ -158,22 +164,6 @@ class AuthService {
 
     if (localProfile != null) {
       _currentUser = localProfile;
-      await _persistState();
-      return true;
-    }
-
-    if (email.isNotEmpty && password.length >= 6) {
-      final newProfile = UserModel(
-        id: 'user_${DateTime.now().millisecondsSinceEpoch}',
-        name: email.split('@').first,
-        email: email,
-        height: 170.0,
-        weight: 65.0,
-        gender: 'Other',
-        history: [],
-      );
-      _profiles.add(newProfile);
-      _currentUser = newProfile;
       await _persistState();
       return true;
     }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../utils/dialogs.dart';
+import '../services/pdf_service.dart';
 import '../viewmodels/user_viewmodel.dart';
 import '../viewmodels/auth_viewmodel.dart';
 import '../models/bmi_record_model.dart';
@@ -305,8 +306,20 @@ class DashboardView extends StatelessWidget {
   Widget _buildQuickActions(BuildContext context, Color primaryBlue, Color cardColor, Color textColor, bool isDark) {
     return Row(
       children: [
-        Expanded(child: _buildQuickActionCard(context, icon: Icons.picture_as_pdf_outlined, title: "Export", color: Colors.orange, cardColor: cardColor, textColor: textColor, isDark: isDark, onTap: () {
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Export Report feature coming soon.')));
+        Expanded(child: _buildQuickActionCard(context, icon: Icons.picture_as_pdf_outlined, title: "Export", color: Colors.orange, cardColor: cardColor, textColor: textColor, isDark: isDark, onTap: () async {
+          final userVM = Provider.of<UserViewModel>(context, listen: false);
+          final user = userVM.currentUser;
+          if (user == null) return;
+          try {
+            final pdfService = PdfService();
+            await pdfService.shareReport(user, userVM);
+          } catch (e) {
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Failed to export report: $e')),
+              );
+            }
+          }
         })),
         const SizedBox(width: 12),
         Expanded(child: _buildQuickActionCard(context, icon: Icons.analytics_outlined, title: "Analytics", color: Colors.purpleAccent, cardColor: cardColor, textColor: textColor, isDark: isDark, onTap: onAnalyticsTap)),
