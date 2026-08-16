@@ -82,15 +82,11 @@ class _LoginViewState extends State<LoginView> {
                 Center(
                   child: Column(
                     children: [
-                      Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          Icon(Icons.change_history, size: 80, color: theme.primaryColor),
-                          Positioned(
-                            top: 10,
-                            child: Icon(Icons.change_history, size: 50, color: theme.primaryColor.withValues(alpha: 0.5)),
-                          ),
-                        ],
+                      Image.asset(
+                        'assets/images/app_icon.png',
+                        width: 100,
+                        height: 100,
+                        fit: BoxFit.contain,
                       ),
                       const SizedBox(height: 16),
                       Text(

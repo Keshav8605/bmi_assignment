@@ -138,7 +138,7 @@ class AuthService {
               height: 170.0,
               weight: 65.0,
               gender: 'Other',
-              history: [],
+              history: _generateDemoHistory(65.0, 170.0),
             );
             _profiles.add(matchedProfile);
           }
@@ -218,7 +218,7 @@ class AuthService {
           height: 170.0,
           weight: 65.0,
           gender: 'Other',
-          history: [],
+          history: _generateDemoHistory(65.0, 170.0),
         );
         _profiles.add(matchedProfile);
       }
@@ -248,16 +248,16 @@ class AuthService {
             await firebaseUser.updateDisplayName(name);
           } catch (_) {}
 
-          final newUser = UserModel(
-            id: firebaseUser.uid,
-            name: name,
-            email: email,
-            height: 170.0,
-            weight: 65.0,
-            gender: 'Other',
-            history: [],
-          );
-          _profiles.add(newUser);
+            final newUser = UserModel(
+              id: firebaseUser.uid,
+              name: name,
+              email: email,
+              height: 170.0,
+              weight: 65.0,
+              gender: 'Other',
+              history: _generateDemoHistory(65.0, 170.0),
+            );
+            _profiles.add(newUser);
           _currentUser = newUser;
           await _persistState();
           return true;
@@ -274,12 +274,39 @@ class AuthService {
       height: 170.0,
       weight: 65.0,
       gender: 'Other',
-      history: [],
+      history: _generateDemoHistory(65.0, 170.0),
     );
     _profiles.add(newUser);
     _currentUser = newUser;
     await _persistState();
     return true;
+  }
+
+  List<BmiRecord> _generateDemoHistory(double currentWeight, double heightCm) {
+    final random = Random();
+    List<BmiRecord> history = [];
+    final now = DateTime.now();
+    double heightM = heightCm / 100;
+    
+    // Simulate weight loss over 60 days
+    double simulatedWeight = currentWeight + 4.0; // Started 4kg heavier
+    final step = 4.0 / 60;
+
+    for (int i = 60; i >= 0; i--) {
+      final date = now.subtract(Duration(days: i));
+      final noise = (random.nextDouble() - 0.5) * 0.4;
+      simulatedWeight -= step;
+      double recordWeight = simulatedWeight + noise;
+      final bmi = recordWeight / (heightM * heightM);
+
+      history.add(BmiRecord(
+        id: 'demo_${date.millisecondsSinceEpoch}',
+        bmiValue: double.parse(bmi.toStringAsFixed(1)),
+        date: date,
+        weight: double.parse(recordWeight.toStringAsFixed(1)),
+      ));
+    }
+    return history;
   }
 
   void switchProfile(String id) {

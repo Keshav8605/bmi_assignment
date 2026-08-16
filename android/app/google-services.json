@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "388920600244-clpi428cd7eahj9t3ep40pl9ft91vq03.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.bmi_app",
+            "certificate_hash": "f0305b387751879771076b088c776c5ed80ab0dd"
+          }
+        },
+        {
           "client_id": "388920600244-5g4h855pvj718poq1d9e0s6irv50tisq.apps.googleusercontent.com",
           "client_type": 3
         }

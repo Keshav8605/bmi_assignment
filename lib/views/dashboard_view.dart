@@ -113,7 +113,19 @@ class DashboardView extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text('Vero', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900, letterSpacing: -0.5, color: primaryBlue)),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Image.asset(
+              'assets/images/app_icon.png',
+              width: 32,
+              height: 32,
+              fit: BoxFit.contain,
+            ),
+            const SizedBox(width: 8),
+            Text('Vero', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900, letterSpacing: -0.5, color: primaryBlue)),
+          ],
+        ),
         Row(
           children: [
             GestureDetector(
@@ -310,7 +322,16 @@ class DashboardView extends StatelessWidget {
           final userVM = Provider.of<UserViewModel>(context, listen: false);
           final user = userVM.currentUser;
           if (user == null) return;
+          
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (ctx) => Center(child: CircularProgressIndicator(color: primaryBlue)),
+          );
+
           try {
+            // Allow the UI to render the loading spinner before the heavy CPU-bound PDF generation starts
+            await Future.delayed(const Duration(milliseconds: 150));
             final pdfService = PdfService();
             await pdfService.shareReport(user, userVM);
           } catch (e) {
@@ -318,6 +339,10 @@ class DashboardView extends StatelessWidget {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(content: Text('Failed to export report: $e')),
               );
+            }
+          } finally {
+            if (context.mounted) {
+              Navigator.pop(context); // close dialog
             }
           }
         })),

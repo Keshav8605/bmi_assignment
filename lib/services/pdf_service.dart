@@ -139,7 +139,6 @@ class PdfService {
           headers: ['Date', 'Weight (kg)', 'BMI'],
           headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white),
           headerDecoration: const pw.BoxDecoration(color: PdfColors.blue900),
-          cellHeight: 30,
           cellAlignments: {
             0: pw.Alignment.centerLeft,
             1: pw.Alignment.center,
@@ -210,12 +209,10 @@ class PdfService {
   Future<void> shareReport(UserModel user, UserViewModel userVM) async {
     try {
       final file = await _savePdf(user, userVM);
-      await SharePlus.instance.share(
-        ShareParams(
-          files: [XFile(file.path)],
-          text: 'Here is my latest Vero Health & BMI Report. Stay healthy! 🚀',
-          title: 'Vero Health Report',
-        ),
+      await Share.shareXFiles(
+        [XFile(file.path)],
+        text: 'Here is my latest Vero Health & BMI Report. Stay healthy! 🚀',
+        subject: 'Vero Health Report',
       );
     } catch (e) {
       debugPrint('Error sharing PDF: $e');
