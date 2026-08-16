@@ -19,7 +19,7 @@ void main() {
           ChangeNotifierProvider(create: (_) => AuthViewModel(authService)),
           ChangeNotifierProvider(create: (_) => UserViewModel(authService)),
         ],
-        child: BmiApp(authService: authService),
+        child: const BmiApp(),
       ),
     );
 

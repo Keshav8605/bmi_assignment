@@ -28,26 +28,27 @@ class _AnalyticsViewState extends State<AnalyticsView> {
     });
   }
 
+  String _periodLabel(ChartPeriod period) {
+    switch (period) {
+      case ChartPeriod.days7: return "Weekly";
+      case ChartPeriod.days30: return "Monthly";
+      case ChartPeriod.months3: return "3 Months";
+      case ChartPeriod.year1: return "Yearly";
+    }
+  }
+
   List<BmiRecord> _getFilteredHistory(List<BmiRecord> history) {
     if (history.isEmpty) return [];
-    
+
     final now = DateTime.now();
-    DateTime cutoff;
-    switch (_selectedPeriod) {
-      case ChartPeriod.days7:
-        cutoff = now.subtract(const Duration(days: 7));
-        break;
-      case ChartPeriod.days30:
-        cutoff = now.subtract(const Duration(days: 30));
-        break;
-      case ChartPeriod.months3:
-        cutoff = now.subtract(const Duration(days: 90));
-        break;
-      case ChartPeriod.year1:
-        cutoff = now.subtract(const Duration(days: 365));
-        break;
-    }
-    
+    final days = switch (_selectedPeriod) {
+      ChartPeriod.days7 => 7,
+      ChartPeriod.days30 => 30,
+      ChartPeriod.months3 => 90,
+      ChartPeriod.year1 => 365,
+    };
+    final cutoff = now.subtract(Duration(days: days));
+
     final filtered = history.where((r) => r.date.isAfter(cutoff)).toList();
     filtered.sort((a, b) => a.date.compareTo(b.date));
     return filtered;
@@ -70,11 +71,7 @@ class _AnalyticsViewState extends State<AnalyticsView> {
           color: cardColor,
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
-            BoxShadow(
-              color: isDark ? Colors.black26 : Colors.black.withValues(alpha: 0.02),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            )
+            BoxShadow(color: isDark ? Colors.black26 : Colors.black.withValues(alpha: 0.02), blurRadius: 10, offset: const Offset(0, 4)),
           ],
         ),
         child: Column(
@@ -85,36 +82,17 @@ class _AnalyticsViewState extends State<AnalyticsView> {
               children: [
                 Container(
                   padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: iconColor.withValues(alpha: 0.1),
-                    shape: BoxShape.circle,
-                  ),
+                  decoration: BoxDecoration(color: iconColor.withValues(alpha: 0.1), shape: BoxShape.circle),
                   child: Icon(icon, color: iconColor, size: 18),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: Text(
-                    title,
-                    style: TextStyle(
-                      color: subTextColor,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                  child: Text(title, style: TextStyle(color: subTextColor, fontSize: 12, fontWeight: FontWeight.w500), maxLines: 1, overflow: TextOverflow.ellipsis),
                 ),
               ],
             ),
             const SizedBox(height: 16),
-            Text(
-              value,
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.w800,
-                color: textColor,
-              ),
-            ),
+            Text(value, style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: textColor)),
           ],
         ),
       ),
@@ -132,7 +110,7 @@ class _AnalyticsViewState extends State<AnalyticsView> {
     final cyanAccent = const Color(0xFF00E5FF);
     final textColor = isDark ? Colors.white : Colors.black87;
     final subTextColor = isDark ? Colors.grey.shade400 : Colors.grey.shade500;
-    
+
     return Scaffold(
       backgroundColor: bgColor,
       body: SafeArea(
@@ -145,12 +123,12 @@ class _AnalyticsViewState extends State<AnalyticsView> {
 
               final history = user.history;
               final chartData = _getFilteredHistory(history);
-              
+
               String startWeight = "-";
               if (chartData.isNotEmpty) {
                 startWeight = "${chartData.first.weight.toStringAsFixed(1)} kg";
               } else if (history.isNotEmpty) {
-                 startWeight = "${history.last.weight.toStringAsFixed(1)} kg"; // Oldest
+                startWeight = "${history.last.weight.toStringAsFixed(1)} kg";
               }
 
               return SingleChildScrollView(
@@ -158,374 +136,11 @@ class _AnalyticsViewState extends State<AnalyticsView> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Header
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          "Analytics",
-                          style: TextStyle(
-                            fontSize: 28, 
-                            fontWeight: FontWeight.bold,
-                            color: textColor,
-                          ),
-                        ),
-                        Row(
-                          children: [
-
-                            GestureDetector(
-                              onTap: () => showEditProfileDialog(context, user),
-                              child: CircleAvatar(
-                                radius: 20,
-                                backgroundColor: primaryBlue.withValues(alpha: 0.1),
-                                child: Text(
-                                  user.name.isNotEmpty ? user.name[0].toUpperCase() : 'U',
-                                  style: TextStyle(color: primaryBlue, fontWeight: FontWeight.bold),
-                                ),
-                              ),
-                            ),
-                          ],
-                        )
-                      ],
-                    ),
+                    _buildAnalyticsHeader(user, primaryBlue, textColor),
                     const SizedBox(height: 24),
-                    
-                    // Stats Grid
-                    Row(
-                      children: [
-                        _buildStatCard(
-                          icon: Icons.monitor_weight_outlined,
-                          title: "Current BMI",
-                          value: userVM.bmiValue.toStringAsFixed(1),
-                          iconColor: primaryBlue,
-                          cardColor: cardColor,
-                          textColor: textColor,
-                          subTextColor: subTextColor,
-                          isDark: isDark,
-                        ),
-                        const SizedBox(width: 16),
-                        _buildStatCard(
-                          icon: Icons.scale_outlined,
-                          title: "Weight",
-                          value: "${user.weight.toStringAsFixed(1)} kg",
-                          iconColor: primaryBlue,
-                          cardColor: cardColor,
-                          textColor: textColor,
-                          subTextColor: subTextColor,
-                          isDark: isDark,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        _buildStatCard(
-                          icon: Icons.height_outlined,
-                          title: "Height",
-                          value: "${user.height.toStringAsFixed(0)} cm",
-                          iconColor: primaryBlue,
-                          cardColor: cardColor,
-                          textColor: textColor,
-                          subTextColor: subTextColor,
-                          isDark: isDark,
-                        ),
-                        const SizedBox(width: 16),
-                        _buildStatCard(
-                          icon: Icons.analytics_outlined,
-                          title: "Status",
-                          value: userVM.bmiCategory,
-                          iconColor: primaryBlue,
-                          cardColor: cardColor,
-                          textColor: textColor,
-                          subTextColor: subTextColor,
-                          isDark: isDark,
-                        ),
-                      ],
-                    ),
+                    _buildStatsGrid(userVM, primaryBlue, cardColor, textColor, subTextColor, isDark),
                     const SizedBox(height: 32),
-                    
-                    // Chart Section
-                    Container(
-                      padding: const EdgeInsets.all(24),
-                      decoration: BoxDecoration(
-                        color: cardColor,
-                        borderRadius: BorderRadius.circular(24),
-                        boxShadow: [
-                          BoxShadow(
-                            color: isDark ? Colors.black26 : Colors.black.withValues(alpha: 0.02),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
-                          )
-                        ],
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                "Weight Trend",
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: textColor,
-                                ),
-                              ),
-                              PopupMenuButton<ChartPeriod>(
-                                initialValue: _selectedPeriod,
-                                color: cardColor,
-                                onSelected: (ChartPeriod result) {
-                                  setState(() {
-                                    _selectedPeriod = result;
-                                  });
-                                },
-                                itemBuilder: (BuildContext context) => <PopupMenuEntry<ChartPeriod>>[
-                                  PopupMenuItem<ChartPeriod>(
-                                    value: ChartPeriod.days7,
-                                    child: Text('Weekly', style: TextStyle(color: textColor)),
-                                  ),
-                                  PopupMenuItem<ChartPeriod>(
-                                    value: ChartPeriod.days30,
-                                    child: Text('Monthly', style: TextStyle(color: textColor)),
-                                  ),
-                                  PopupMenuItem<ChartPeriod>(
-                                    value: ChartPeriod.months3,
-                                    child: Text('3 Months', style: TextStyle(color: textColor)),
-                                  ),
-                                  PopupMenuItem<ChartPeriod>(
-                                    value: ChartPeriod.year1,
-                                    child: Text('Yearly', style: TextStyle(color: textColor)),
-                                  ),
-                                ],
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                  decoration: BoxDecoration(
-                                    color: bgColor,
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      Text(
-                                        _selectedPeriod == ChartPeriod.days30 ? "Monthly" : 
-                                        _selectedPeriod == ChartPeriod.days7 ? "Weekly" : 
-                                        _selectedPeriod == ChartPeriod.months3 ? "3 Months" : "Yearly",
-                                        style: TextStyle(
-                                          fontSize: 12, 
-                                          fontWeight: FontWeight.w600,
-                                          color: subTextColor
-                                        ),
-                                      ),
-                                      const SizedBox(width: 4),
-                                      Icon(Icons.keyboard_arrow_down, size: 14, color: subTextColor),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 24),
-                          Row(
-                            children: [
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    "${user.weight.toStringAsFixed(1)} kg",
-                                    style: TextStyle(
-                                      fontSize: 22,
-                                      fontWeight: FontWeight.bold,
-                                      color: textColor,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    "Current Wt",
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: subTextColor,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  )
-                                ],
-                              ),
-                              const SizedBox(width: 48),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    startWeight,
-                                    style: TextStyle(
-                                      fontSize: 22,
-                                      fontWeight: FontWeight.bold,
-                                      color: textColor,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    "Start Wt",
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: subTextColor,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  )
-                                ],
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 32),
-                          SizedBox(
-                            height: 200,
-                            child: chartData.isEmpty 
-                              ? const Center(child: Text("Not enough data to display chart."))
-                              : LineChart(
-                                LineChartData(
-                                  lineTouchData: LineTouchData(
-                                    handleBuiltInTouches: true,
-                                    touchTooltipData: LineTouchTooltipData(
-                                      getTooltipItems: (touchedSpots) {
-                                        return touchedSpots.map((LineBarSpot touchedSpot) {
-                                          return LineTooltipItem(
-                                            '${touchedSpot.y.toStringAsFixed(1)} kg',
-                                            const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                                          );
-                                        }).toList();
-                                      },
-                                    ),
-                                  ),
-                                  gridData: FlGridData(
-                                    show: true,
-                                    drawVerticalLine: true,
-                                    verticalInterval: 1,
-                                    horizontalInterval: 5,
-                                    getDrawingHorizontalLine: (value) => FlLine(
-                                      color: isDark ? Colors.grey.shade800 : Colors.grey.withValues(alpha: 0.1),
-                                      strokeWidth: 1,
-                                    ),
-                                    getDrawingVerticalLine: (value) => FlLine(
-                                      color: Colors.transparent, // Hide vertical lines normally
-                                      strokeWidth: 0,
-                                    ),
-                                  ),
-                                  titlesData: FlTitlesData(
-                                    bottomTitles: AxisTitles(
-                                      sideTitles: SideTitles(
-                                        showTitles: true,
-                                        reservedSize: 30,
-                                        getTitlesWidget: (value, meta) {
-                                          if (value.toInt() < 0 || value.toInt() >= chartData.length) return const Text("");
-                                          // Only show ~5 labels max on x axis
-                                          final int step = (chartData.length / 5).ceil();
-                                          if (value.toInt() % step != 0 && value.toInt() != chartData.length -1) return const Text("");
-                                          
-                                          final date = chartData[value.toInt()].date;
-                                          final dayStr = DateFormat('E').format(date).substring(0, 1); // First letter of day (S, M, T...)
-                                          return Padding(
-                                            padding: const EdgeInsets.only(top: 8.0),
-                                            child: Text(
-                                              dayStr,
-                                              style: TextStyle(
-                                                color: subTextColor, 
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.w600,
-                                              ),
-                                            ),
-                                          );
-                                        },
-                                      ),
-                                    ),
-                                    leftTitles: AxisTitles(
-                                      sideTitles: SideTitles(
-                                        showTitles: true,
-                                        reservedSize: 30,
-                                        getTitlesWidget: (value, meta) {
-                                          return Text(
-                                            "${value.toInt()}k", // adding 'k' just to match the visual style of the image loosely if we wanted to, but we're plotting weight, so kg is better.
-                                            style: TextStyle(
-                                              color: subTextColor, 
-                                              fontSize: 11,
-                                              fontWeight: FontWeight.w500,
-                                            ),
-                                          );
-                                        }
-                                      ),
-                                    ),
-                                    topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                                    rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                                  ),
-                                  borderData: FlBorderData(show: false),
-                                  minX: 0,
-                                  maxX: (chartData.length - 1).toDouble(),
-                                  minY: (chartData.map((e) => e.weight).reduce((a, b) => a < b ? a : b) - 5).floorToDouble(),
-                                  maxY: (chartData.map((e) => e.weight).reduce((a, b) => a > b ? a : b) + 5).ceilToDouble(),
-                                  lineBarsData: [
-                                    LineChartBarData(
-                                      spots: chartData.asMap().entries.map((e) {
-                                        return FlSpot(e.key.toDouble(), e.value.weight);
-                                      }).toList(),
-                                      isCurved: true,
-                                      color: primaryBlue,
-                                      barWidth: 3,
-                                      isStrokeCapRound: true,
-                                      dotData: FlDotData(
-                                        show: true,
-                                        checkToShowDot: (spot, barData) {
-                                          return spot.x == chartData.length - 1; // Show dot only on the last spot
-                                        },
-                                        getDotPainter: (spot, percent, barData, index) {
-                                          return FlDotCirclePainter(
-                                            radius: 5,
-                                            color: Colors.white,
-                                            strokeWidth: 3,
-                                            strokeColor: primaryBlue,
-                                          );
-                                        },
-                                      ),
-                                      belowBarData: BarAreaData(
-                                        show: true,
-                                        gradient: LinearGradient(
-                                          colors: [
-                                            primaryBlue.withValues(alpha: 0.2),
-                                            primaryBlue.withValues(alpha: 0.0),
-                                          ],
-                                          begin: Alignment.topCenter,
-                                          end: Alignment.bottomCenter,
-                                        ),
-                                      ),
-                                    ),
-                                    // Optional: Add a second line for "Target" or "Average" to match the 2-line visual in the image
-                                    LineChartBarData(
-                                      spots: chartData.asMap().entries.map((e) {
-                                        return FlSpot(e.key.toDouble(), e.value.weight - 2); // Dummy offset line to look like the image
-                                      }).toList(),
-                                      isCurved: true,
-                                      color: cyanAccent,
-                                      barWidth: 3,
-                                      isStrokeCapRound: true,
-                                      dotData: FlDotData(
-                                        show: true,
-                                        checkToShowDot: (spot, barData) {
-                                          return spot.x == chartData.length - 1;
-                                        },
-                                        getDotPainter: (spot, percent, barData, index) {
-                                          return FlDotCirclePainter(
-                                            radius: 4,
-                                            color: Colors.white,
-                                            strokeWidth: 2,
-                                            strokeColor: cyanAccent,
-                                          );
-                                        },
-                                      ),
-                                      belowBarData: BarAreaData(show: false),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                          ),
-                        ],
-                      ),
-                    ),
+                    _buildChartSection(user, chartData, startWeight, bgColor, cardColor, primaryBlue, cyanAccent, textColor, subTextColor, isDark),
                     const SizedBox(height: 24),
                   ],
                 ),
@@ -533,6 +148,213 @@ class _AnalyticsViewState extends State<AnalyticsView> {
             },
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildAnalyticsHeader(dynamic user, Color primaryBlue, Color textColor) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text("Analytics", style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: textColor)),
+        GestureDetector(
+          onTap: () => showEditProfileDialog(context, user),
+          child: CircleAvatar(
+            radius: 20,
+            backgroundColor: primaryBlue.withValues(alpha: 0.1),
+            child: Text(
+              user.name.isNotEmpty ? user.name[0].toUpperCase() : 'U',
+              style: TextStyle(color: primaryBlue, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatsGrid(UserViewModel userVM, Color primaryBlue, Color cardColor, Color textColor, Color subTextColor, bool isDark) {
+    final user = userVM.currentUser!;
+    return Column(
+      children: [
+        Row(
+          children: [
+            _buildStatCard(icon: Icons.monitor_weight_outlined, title: "Current BMI", value: userVM.bmiValue.toStringAsFixed(1), iconColor: primaryBlue, cardColor: cardColor, textColor: textColor, subTextColor: subTextColor, isDark: isDark),
+            const SizedBox(width: 16),
+            _buildStatCard(icon: Icons.scale_outlined, title: "Weight", value: "${user.weight.toStringAsFixed(1)} kg", iconColor: primaryBlue, cardColor: cardColor, textColor: textColor, subTextColor: subTextColor, isDark: isDark),
+          ],
+        ),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            _buildStatCard(icon: Icons.height_outlined, title: "Height", value: "${user.height.toStringAsFixed(0)} cm", iconColor: primaryBlue, cardColor: cardColor, textColor: textColor, subTextColor: subTextColor, isDark: isDark),
+            const SizedBox(width: 16),
+            _buildStatCard(icon: Icons.analytics_outlined, title: "Status", value: userVM.bmiCategory, iconColor: primaryBlue, cardColor: cardColor, textColor: textColor, subTextColor: subTextColor, isDark: isDark),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildChartSection(dynamic user, List<BmiRecord> chartData, String startWeight, Color bgColor, Color cardColor, Color primaryBlue, Color cyanAccent, Color textColor, Color subTextColor, bool isDark) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: cardColor,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(color: isDark ? Colors.black26 : Colors.black.withValues(alpha: 0.02), blurRadius: 10, offset: const Offset(0, 4)),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text("Weight Trend", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: textColor)),
+              PopupMenuButton<ChartPeriod>(
+                initialValue: _selectedPeriod,
+                color: cardColor,
+                onSelected: (result) => setState(() => _selectedPeriod = result),
+                itemBuilder: (context) => ChartPeriod.values.map((p) =>
+                  PopupMenuItem(value: p, child: Text(_periodLabel(p), style: TextStyle(color: textColor))),
+                ).toList(),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(20)),
+                  child: Row(
+                    children: [
+                      Text(_periodLabel(_selectedPeriod), style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: subTextColor)),
+                      const SizedBox(width: 4),
+                      Icon(Icons.keyboard_arrow_down, size: 14, color: subTextColor),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          Row(
+            children: [
+              _buildWeightLabel("${user.weight.toStringAsFixed(1)} kg", "Current Wt", textColor, subTextColor),
+              const SizedBox(width: 48),
+              _buildWeightLabel(startWeight, "Start Wt", textColor, subTextColor),
+            ],
+          ),
+          const SizedBox(height: 32),
+          SizedBox(
+            height: 200,
+            child: chartData.isEmpty
+                ? const Center(child: Text("Not enough data to display chart."))
+                : _buildLineChart(chartData, primaryBlue, cyanAccent, subTextColor, isDark),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildWeightLabel(String value, String label, Color textColor, Color subTextColor) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(value, style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: textColor)),
+        const SizedBox(height: 4),
+        Text(label, style: TextStyle(fontSize: 12, color: subTextColor, fontWeight: FontWeight.w500)),
+      ],
+    );
+  }
+
+  Widget _buildLineChart(List<BmiRecord> chartData, Color primaryBlue, Color cyanAccent, Color subTextColor, bool isDark) {
+    return LineChart(
+      LineChartData(
+        lineTouchData: LineTouchData(
+          handleBuiltInTouches: true,
+          touchTooltipData: LineTouchTooltipData(
+            getTooltipItems: (touchedSpots) {
+              return touchedSpots.map((spot) {
+                return LineTooltipItem('${spot.y.toStringAsFixed(1)} kg', const TextStyle(color: Colors.white, fontWeight: FontWeight.bold));
+              }).toList();
+            },
+          ),
+        ),
+        gridData: FlGridData(
+          show: true,
+          drawVerticalLine: true,
+          verticalInterval: 1,
+          horizontalInterval: 5,
+          getDrawingHorizontalLine: (value) => FlLine(
+            color: isDark ? Colors.grey.shade800 : Colors.grey.withValues(alpha: 0.1),
+            strokeWidth: 1,
+          ),
+          getDrawingVerticalLine: (value) => const FlLine(color: Colors.transparent, strokeWidth: 0),
+        ),
+        titlesData: FlTitlesData(
+          bottomTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              reservedSize: 30,
+              getTitlesWidget: (value, meta) {
+                if (value.toInt() < 0 || value.toInt() >= chartData.length) return const Text("");
+                final step = (chartData.length / 5).ceil();
+                if (value.toInt() % step != 0 && value.toInt() != chartData.length - 1) return const Text("");
+
+                final dayStr = DateFormat('E').format(chartData[value.toInt()].date).substring(0, 1);
+                return Padding(
+                  padding: const EdgeInsets.only(top: 8.0),
+                  child: Text(dayStr, style: TextStyle(color: subTextColor, fontSize: 12, fontWeight: FontWeight.w600)),
+                );
+              },
+            ),
+          ),
+          leftTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              reservedSize: 30,
+              getTitlesWidget: (value, meta) {
+                return Text("${value.toInt()}k", style: TextStyle(color: subTextColor, fontSize: 11, fontWeight: FontWeight.w500));
+              },
+            ),
+          ),
+          topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+        ),
+        borderData: FlBorderData(show: false),
+        minX: 0,
+        maxX: (chartData.length - 1).toDouble(),
+        minY: (chartData.map((e) => e.weight).reduce((a, b) => a < b ? a : b) - 5).floorToDouble(),
+        maxY: (chartData.map((e) => e.weight).reduce((a, b) => a > b ? a : b) + 5).ceilToDouble(),
+        lineBarsData: [
+          _buildChartLine(chartData, primaryBlue, showArea: true),
+          _buildChartLine(chartData, cyanAccent, offset: -2),
+        ],
+      ),
+    );
+  }
+
+  LineChartBarData _buildChartLine(List<BmiRecord> data, Color color, {bool showArea = false, double offset = 0}) {
+    return LineChartBarData(
+      spots: data.asMap().entries.map((e) => FlSpot(e.key.toDouble(), e.value.weight + offset)).toList(),
+      isCurved: true,
+      color: color,
+      barWidth: 3,
+      isStrokeCapRound: true,
+      dotData: FlDotData(
+        show: true,
+        checkToShowDot: (spot, barData) => spot.x == data.length - 1,
+        getDotPainter: (spot, percent, barData, index) {
+          return FlDotCirclePainter(
+            radius: showArea ? 5 : 4,
+            color: Colors.white,
+            strokeWidth: showArea ? 3 : 2,
+            strokeColor: color,
+          );
+        },
+      ),
+      belowBarData: BarAreaData(
+        show: showArea,
+        gradient: showArea
+            ? LinearGradient(colors: [color.withValues(alpha: 0.2), color.withValues(alpha: 0.0)], begin: Alignment.topCenter, end: Alignment.bottomCenter)
+            : null,
       ),
     );
   }

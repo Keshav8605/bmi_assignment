@@ -11,7 +11,7 @@ class GenderSelectionView extends StatefulWidget {
 }
 
 class _GenderSelectionViewState extends State<GenderSelectionView> {
-  String _selectedGender = 'Female'; // Default to match the UI image
+  String _selectedGender = 'Female';
 
   void _onNext() {
     final userVM = Provider.of<UserViewModel>(context, listen: false);
@@ -23,31 +23,31 @@ class _GenderSelectionViewState extends State<GenderSelectionView> {
     final userVM = Provider.of<UserViewModel>(context);
     final isDark = userVM.isDarkMode;
     final isSelected = _selectedGender == gender;
-    
+
     return GestureDetector(
-      onTap: () {
-        setState(() {
-          _selectedGender = gender;
-        });
-      },
+      onTap: () => setState(() => _selectedGender = gender),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeOutCubic,
-        transform: Matrix4.identity()..scale(isSelected ? 1.05 : 0.95, isSelected ? 1.05 : 0.95, 1.0),
+        transform: Matrix4.diagonal3Values(
+          isSelected ? 1.05 : 0.95,
+          isSelected ? 1.05 : 0.95,
+          1.0,
+        ),
         child: Stack(
           alignment: Alignment.center,
           children: [
-            // Circular background highlight
             AnimatedContainer(
               duration: const Duration(milliseconds: 300),
               width: 140,
               height: 140,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: isSelected ? (isDark ? Colors.white.withValues(alpha: 0.1) : Colors.grey.withValues(alpha: 0.1)) : Colors.transparent,
+                color: isSelected
+                    ? (isDark ? Colors.white.withValues(alpha: 0.1) : Colors.grey.withValues(alpha: 0.1))
+                    : Colors.transparent,
               ),
             ),
-            // Character Image
             AnimatedOpacity(
               duration: const Duration(milliseconds: 300),
               opacity: isSelected ? 1.0 : 0.5,
@@ -56,7 +56,6 @@ class _GenderSelectionViewState extends State<GenderSelectionView> {
                 height: 200,
                 fit: BoxFit.contain,
                 errorBuilder: (context, error, stackTrace) {
-                  // Fallback if image is missing
                   return Container(
                     height: 150,
                     width: 70,
@@ -78,7 +77,7 @@ class _GenderSelectionViewState extends State<GenderSelectionView> {
   Widget build(BuildContext context) {
     final userVM = Provider.of<UserViewModel>(context);
     final isDark = userVM.isDarkMode;
-    
+
     final bgColor = isDark ? const Color(0xFF121212) : const Color(0xFFF7F8FA);
     final textColor = isDark ? Colors.white : Colors.black87;
     final pinkAccent = isDark ? const Color(0xFFFF7B93) : const Color(0xFFED5D73);
@@ -93,17 +92,12 @@ class _GenderSelectionViewState extends State<GenderSelectionView> {
             children: [
               Text(
                 'Choose One',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: textColor,
-                ),
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: textColor),
               ),
               Expanded(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    // Characters Row
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
@@ -112,73 +106,10 @@ class _GenderSelectionViewState extends State<GenderSelectionView> {
                       ],
                     ),
                     const SizedBox(height: 48),
-                    // Toggle Pill
-                    Container(
-                      width: 250,
-                      height: 50,
-                      decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-                        borderRadius: BorderRadius.circular(25),
-                        boxShadow: [
-                          BoxShadow(
-                            color: isDark ? Colors.black26 : Colors.black.withValues(alpha: 0.02),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
-                          )
-                        ],
-                      ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: GestureDetector(
-                              onTap: () => setState(() => _selectedGender = 'Female'),
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: _selectedGender == 'Female' ? (isDark ? const Color(0xFF2C2C2C) : Colors.white) : Colors.transparent,
-                                  borderRadius: BorderRadius.circular(25),
-                                  border: _selectedGender == 'Female' ? Border.all(color: isDark ? Colors.grey.shade700 : Colors.grey.shade200) : null,
-                                ),
-                                child: Center(
-                                  child: Text(
-                                    'Female',
-                                    style: TextStyle(
-                                      color: _selectedGender == 'Female' ? textColor : Colors.grey.shade500,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                          Expanded(
-                            child: GestureDetector(
-                              onTap: () => setState(() => _selectedGender = 'Male'),
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: _selectedGender == 'Male' ? (isDark ? const Color(0xFF2C2C2C) : Colors.white) : Colors.transparent,
-                                  borderRadius: BorderRadius.circular(25),
-                                  border: _selectedGender == 'Male' ? Border.all(color: isDark ? Colors.grey.shade700 : Colors.grey.shade200) : null,
-                                ),
-                                child: Center(
-                                  child: Text(
-                                    'Male',
-                                    style: TextStyle(
-                                      color: _selectedGender == 'Male' ? textColor : Colors.grey.shade500,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                    _buildTogglePill(isDark, textColor),
                   ],
                 ),
               ),
-              
-              // Next Button
               Center(
                 child: InkWell(
                   onTap: _onNext,
@@ -195,7 +126,7 @@ class _GenderSelectionViewState extends State<GenderSelectionView> {
                           color: pinkAccent.withValues(alpha: 0.4),
                           blurRadius: 15,
                           offset: const Offset(0, 5),
-                        )
+                        ),
                       ],
                     ),
                     child: const Icon(Icons.arrow_forward, color: Colors.white, size: 28),
@@ -204,6 +135,59 @@ class _GenderSelectionViewState extends State<GenderSelectionView> {
               ),
               const SizedBox(height: 24),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTogglePill(bool isDark, Color textColor) {
+    return Container(
+      width: 250,
+      height: 50,
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+        borderRadius: BorderRadius.circular(25),
+        boxShadow: [
+          BoxShadow(
+            color: isDark ? Colors.black26 : Colors.black.withValues(alpha: 0.02),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          _buildPillOption('Female', isDark, textColor),
+          _buildPillOption('Male', isDark, textColor),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPillOption(String gender, bool isDark, Color textColor) {
+    final isActive = _selectedGender == gender;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => setState(() => _selectedGender = gender),
+        child: Container(
+          decoration: BoxDecoration(
+            color: isActive
+                ? (isDark ? const Color(0xFF2C2C2C) : Colors.white)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(25),
+            border: isActive
+                ? Border.all(color: isDark ? Colors.grey.shade700 : Colors.grey.shade200)
+                : null,
+          ),
+          child: Center(
+            child: Text(
+              gender,
+              style: TextStyle(
+                color: isActive ? textColor : Colors.grey.shade500,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ),
         ),
       ),

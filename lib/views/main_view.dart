@@ -19,21 +19,18 @@ class _MainViewState extends State<MainView> {
   Widget build(BuildContext context) {
     final userVM = Provider.of<UserViewModel>(context);
     final isDark = userVM.isDarkMode;
-    
-    final bgColor = isDark ? const Color(0xFF121212) : const Color(0xFFF7F8FA);
+
     final navColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
     final primaryBlue = isDark ? const Color(0xFF6B8AFF) : const Color(0xFF4361EE);
     final unselectedColor = isDark ? Colors.grey.shade500 : Colors.grey.shade400;
-    
+
     return Scaffold(
-      backgroundColor: bgColor,
+      backgroundColor: isDark ? const Color(0xFF121212) : const Color(0xFFF7F8FA),
       body: IndexedStack(
         index: _currentIndex,
         children: [
           DashboardView(onAnalyticsTap: () {
-            setState(() {
-              _currentIndex = 1;
-            });
+            setState(() => _currentIndex = 1);
           }),
           const AnalyticsView(),
           const SettingsView(),
@@ -55,11 +52,7 @@ class _MainViewState extends State<MainView> {
           borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
           child: BottomNavigationBar(
             currentIndex: _currentIndex,
-            onTap: (index) {
-              setState(() {
-                _currentIndex = index;
-              });
-            },
+            onTap: (index) => setState(() => _currentIndex = index),
             backgroundColor: navColor,
             elevation: 0,
             selectedItemColor: primaryBlue,
@@ -70,18 +63,9 @@ class _MainViewState extends State<MainView> {
             selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
             unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.normal, fontSize: 12),
             items: const [
-              BottomNavigationBarItem(
-                icon: Icon(Icons.home_rounded),
-                label: 'Home',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.analytics_rounded),
-                label: 'Analytics',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.settings_rounded),
-                label: 'Settings',
-              ),
+              BottomNavigationBarItem(icon: Icon(Icons.home_rounded), label: 'Home'),
+              BottomNavigationBarItem(icon: Icon(Icons.analytics_rounded), label: 'Analytics'),
+              BottomNavigationBarItem(icon: Icon(Icons.settings_rounded), label: 'Settings'),
             ],
           ),
         ),

@@ -19,7 +19,8 @@ void showEditProfileDialog(BuildContext context, UserModel user) {
       final primaryBlue = isDark ? const Color(0xFF6B8AFF) : const Color(0xFF4361EE);
       final borderColor = isDark ? Colors.grey.shade800 : Colors.grey.shade200;
       final inputFillColor = isDark ? const Color(0xFF2C2C2C) : Colors.grey.shade50;
-      
+      final labelColor = isDark ? Colors.grey.shade400 : Colors.black54;
+
       return StatefulBuilder(
         builder: (context, setDialogState) {
           return Dialog(
@@ -33,46 +34,11 @@ void showEditProfileDialog(BuildContext context, UserModel user) {
                 children: [
                   Text('Edit Profile', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: textColor)),
                   const SizedBox(height: 20),
-                  TextField(
-                    controller: nameController,
-                    style: TextStyle(color: textColor),
-                    decoration: InputDecoration(
-                      labelText: 'Name',
-                      labelStyle: TextStyle(color: isDark ? Colors.grey.shade400 : Colors.black54),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: borderColor)),
-                      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: borderColor)),
-                      filled: true,
-                      fillColor: inputFillColor,
-                    ),
-                  ),
+                  _buildTextField(nameController, 'Name', textColor, labelColor, borderColor, inputFillColor),
                   const SizedBox(height: 16),
-                  TextField(
-                    controller: weightController,
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    style: TextStyle(color: textColor),
-                    decoration: InputDecoration(
-                      labelText: 'Weight (kg)',
-                      labelStyle: TextStyle(color: isDark ? Colors.grey.shade400 : Colors.black54),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: borderColor)),
-                      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: borderColor)),
-                      filled: true,
-                      fillColor: inputFillColor,
-                    ),
-                  ),
+                  _buildTextField(weightController, 'Weight (kg)', textColor, labelColor, borderColor, inputFillColor, isNumeric: true),
                   const SizedBox(height: 16),
-                  TextField(
-                    controller: heightController,
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    style: TextStyle(color: textColor),
-                    decoration: InputDecoration(
-                      labelText: 'Height (cm)',
-                      labelStyle: TextStyle(color: isDark ? Colors.grey.shade400 : Colors.black54),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: borderColor)),
-                      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: borderColor)),
-                      filled: true,
-                      fillColor: inputFillColor,
-                    ),
-                  ),
+                  _buildTextField(heightController, 'Height (cm)', textColor, labelColor, borderColor, inputFillColor, isNumeric: true),
                   const SizedBox(height: 16),
                   DropdownButtonFormField<String>(
                     initialValue: selectedGender.isNotEmpty ? selectedGender : 'Other',
@@ -80,7 +46,7 @@ void showEditProfileDialog(BuildContext context, UserModel user) {
                     style: TextStyle(color: textColor),
                     decoration: InputDecoration(
                       labelText: 'Gender',
-                      labelStyle: TextStyle(color: isDark ? Colors.grey.shade400 : Colors.black54),
+                      labelStyle: TextStyle(color: labelColor),
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: borderColor)),
                       enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: borderColor)),
                       filled: true,
@@ -106,7 +72,7 @@ void showEditProfileDialog(BuildContext context, UserModel user) {
                     children: [
                       TextButton(
                         onPressed: () => Navigator.pop(context),
-                        child: Text('Cancel', style: TextStyle(color: isDark ? Colors.grey.shade400 : Colors.black54, fontWeight: FontWeight.bold)),
+                        child: Text('Cancel', style: TextStyle(color: labelColor, fontWeight: FontWeight.bold)),
                       ),
                       const SizedBox(width: 8),
                       ElevatedButton(
@@ -117,7 +83,7 @@ void showEditProfileDialog(BuildContext context, UserModel user) {
                           }
                           double? w = double.tryParse(weightController.text);
                           double? h = double.tryParse(heightController.text);
-                          
+
                           if (w == null || w <= 0 || w > 500) {
                             ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please enter a valid weight.')));
                             return;
@@ -151,8 +117,32 @@ void showEditProfileDialog(BuildContext context, UserModel user) {
               ),
             ),
           );
-        }
+        },
       );
-    }
+    },
+  );
+}
+
+Widget _buildTextField(
+  TextEditingController controller,
+  String label,
+  Color textColor,
+  Color labelColor,
+  Color borderColor,
+  Color fillColor, {
+  bool isNumeric = false,
+}) {
+  return TextField(
+    controller: controller,
+    keyboardType: isNumeric ? const TextInputType.numberWithOptions(decimal: true) : TextInputType.text,
+    style: TextStyle(color: textColor),
+    decoration: InputDecoration(
+      labelText: label,
+      labelStyle: TextStyle(color: labelColor),
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: borderColor)),
+      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: borderColor)),
+      filled: true,
+      fillColor: fillColor,
+    ),
   );
 }

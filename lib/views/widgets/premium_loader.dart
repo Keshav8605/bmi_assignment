@@ -29,6 +29,16 @@ class PremiumLoader extends StatelessWidget {
                       width: 150,
                       height: 150,
                       fit: BoxFit.contain,
+                      errorBuilder: (context, error, stackTrace) {
+                        return const SizedBox(
+                          width: 50,
+                          height: 50,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 3,
+                            color: Color(0xFFF92B54),
+                          ),
+                        );
+                      },
                     ),
                     const SizedBox(height: 16),
                     const Text(

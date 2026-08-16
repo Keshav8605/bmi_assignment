@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
@@ -7,7 +8,6 @@ import '../models/user_model.dart';
 import '../viewmodels/user_viewmodel.dart';
 
 class PdfService {
-  /// Generates the PDF document based on user data
   Future<pw.Document> _generateReport(UserModel user, UserViewModel userVM) async {
     final pdf = pw.Document();
 
@@ -27,7 +27,7 @@ class PdfService {
             pw.SizedBox(height: 32),
             _buildHistoryTable(user),
             pw.SizedBox(height: 32),
-            _buildFooter(now),
+            _buildFooter(),
           ];
         },
       ),
@@ -89,10 +89,12 @@ class PdfService {
             children: [
               _buildInfoColumn('Current BMI', bmi.toStringAsFixed(1)),
               _buildInfoColumn('Category', category, isHighlight: true),
-              if (user.targetWeight != null)
-                _buildInfoColumn('Target Weight', '${user.targetWeight!.toStringAsFixed(1)} kg'),
-              if (user.targetWeight == null)
-                _buildInfoColumn('Target Weight', 'Not set'),
+              _buildInfoColumn(
+                'Target Weight',
+                user.targetWeight != null
+                    ? '${user.targetWeight!.toStringAsFixed(1)} kg'
+                    : 'Not set',
+              ),
             ],
           ),
         ],
@@ -123,13 +125,11 @@ class PdfService {
       return pw.Text('No history records found.', style: const pw.TextStyle(color: PdfColors.grey700));
     }
 
-    // Sort history latest first
     final sortedHistory = List.of(user.history)
       ..sort((a, b) => b.date.compareTo(a.date));
 
-    // Calculate BMI for each record. Formula: weight(kg) / height(m)^2
     final heightInMeters = user.height / 100;
-    
+
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
@@ -158,21 +158,20 @@ class PdfService {
     );
   }
 
-  pw.Widget _buildFooter(DateTime date) {
+  pw.Widget _buildFooter() {
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.center,
       children: [
         pw.Divider(color: PdfColors.grey400),
         pw.SizedBox(height: 8),
         pw.Text(
-          'Vermo Health App • Confidentially generated for user',
+          'Vermo Health App — Confidentially generated for user',
           style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey600),
         ),
       ],
     );
   }
 
-  /// Generates the PDF and saves it to the temporary directory. Returns the File.
   Future<File> _savePdf(UserModel user, UserViewModel userVM) async {
     final pdf = await _generateReport(user, userVM);
     final output = await getTemporaryDirectory();
@@ -181,15 +180,13 @@ class PdfService {
     return file;
   }
 
-  /// Downloads the PDF to the device's external storage (Downloads folder) if possible.
   Future<String?> downloadReport(UserModel user, UserViewModel userVM) async {
     try {
       final pdf = await _generateReport(user, userVM);
       Directory? directory;
-      
+
       if (Platform.isAndroid) {
         directory = Directory('/storage/emulated/0/Download');
-        // Fallback if Download folder doesn't exist/isn't accessible
         if (!await directory.exists()) {
           directory = await getExternalStorageDirectory();
         }
@@ -205,23 +202,23 @@ class PdfService {
       }
       return null;
     } catch (e) {
-      print('Error saving PDF: $e');
+      debugPrint('Error saving PDF: $e');
       return null;
     }
   }
 
-  /// Generates and shares the PDF using share_plus
   Future<void> shareReport(UserModel user, UserViewModel userVM) async {
     try {
       final file = await _savePdf(user, userVM);
-      
-      await Share.shareXFiles(
-        [XFile(file.path)],
-        text: 'Here is my latest Vermo Health & BMI Report. Stay healthy! 🚀',
-        subject: 'Vermo Health Report',
+      await SharePlus.instance.share(
+        ShareParams(
+          files: [XFile(file.path)],
+          text: 'Here is my latest Vermo Health & BMI Report. Stay healthy! 🚀',
+          title: 'Vermo Health Report',
+        ),
       );
     } catch (e) {
-      print('Error sharing PDF: $e');
+      debugPrint('Error sharing PDF: $e');
     }
   }
 }

@@ -4,8 +4,8 @@ class UserModel {
   final String id;
   final String name;
   final String email;
-  final double height; // stored in cm
-  final double weight; // stored in kg
+  final double height;
+  final double weight;
   final String gender;
   final double? targetWeight;
   final DateTime? targetDate;

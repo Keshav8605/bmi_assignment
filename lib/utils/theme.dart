@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
-  // Define colors
-  static const Color primaryColor = Color(0xFFF92B54); // Vermo Red/Pink
+  static const Color primaryColor = Color(0xFFF92B54);
   static const Color secondaryColor = Color(0xFF3F3D56);
   static const Color backgroundColor = Colors.white;
   static const Color cardColor = Colors.white;
@@ -24,7 +23,7 @@ class AppTheme {
       textTheme: GoogleFonts.interTextTheme().copyWith(
         displayLarge: GoogleFonts.inter(fontSize: 32, fontWeight: FontWeight.bold, color: textPrimaryColor),
         displayMedium: GoogleFonts.inter(fontSize: 28, fontWeight: FontWeight.bold, color: textPrimaryColor),
-        displaySmall: GoogleFonts.inter(fontSize: 24, fontWeight: FontWeight.w800, color: textPrimaryColor), // Bolder for Vermo titles
+        displaySmall: GoogleFonts.inter(fontSize: 24, fontWeight: FontWeight.w800, color: textPrimaryColor),
         headlineMedium: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.bold, color: textPrimaryColor),
         titleLarge: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.bold, color: textPrimaryColor),
         bodyLarge: GoogleFonts.inter(fontSize: 16, color: textPrimaryColor),

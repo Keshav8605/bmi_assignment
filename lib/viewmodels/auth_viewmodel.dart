@@ -20,6 +20,17 @@ class AuthViewModel extends ChangeNotifier {
     return success;
   }
 
+  Future<bool> loginWithGoogle() async {
+    _isLoading = true;
+    notifyListeners();
+
+    bool success = await _authService.signInWithGoogle();
+
+    _isLoading = false;
+    notifyListeners();
+    return success;
+  }
+
   Future<bool> register(String name, String email, String password) async {
     _isLoading = true;
     notifyListeners();
